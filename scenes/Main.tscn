@@ -606,56 +606,93 @@ text = "Play Again"
 [node name="MetaPanel" type="Panel" parent="HUD"]
 visible = false
 process_mode = 3
-offset_left = 326.0
-offset_top = 104.0
-offset_right = 826.0
-offset_bottom = 544.0
+offset_left = 126.0
+offset_top = 25.0
+offset_right = 1026.0
+offset_bottom = 465.0
 mouse_filter = 1
 theme_override_styles/panel = SubResource("StyleBoxFlat_title")
 
 [node name="Title" type="Label" parent="HUD/MetaPanel"]
 offset_left = 24.0
-offset_top = 20.0
-offset_right = 476.0
-offset_bottom = 58.0
+offset_top = 14.0
+offset_right = 876.0
+offset_bottom = 50.0
 theme_override_colors/font_color = Color(1, 0.86, 0.34, 1)
 theme_override_font_sizes/font_size = 26
 text = "FRONT OFFICE UPGRADES"
 horizontal_alignment = 1
 
 [node name="Status" type="Label" parent="HUD/MetaPanel"]
-offset_left = 34.0
-offset_top = 64.0
-offset_right = 466.0
-offset_bottom = 104.0
+offset_left = 24.0
+offset_top = 54.0
+offset_right = 876.0
+offset_bottom = 94.0
 horizontal_alignment = 1
 
 [node name="UpgradeButton1" type="Button" parent="HUD/MetaPanel"]
-offset_left = 34.0
-offset_top = 120.0
-offset_right = 466.0
-offset_bottom = 174.0
+offset_left = 24.0
+offset_top = 100.0
+offset_right = 436.0
+offset_bottom = 140.0
 process_mode = 3
 
 [node name="UpgradeButton2" type="Button" parent="HUD/MetaPanel"]
-offset_left = 34.0
-offset_top = 188.0
-offset_right = 466.0
-offset_bottom = 242.0
+offset_left = 24.0
+offset_top = 148.0
+offset_right = 436.0
+offset_bottom = 188.0
 process_mode = 3
 
 [node name="UpgradeButton3" type="Button" parent="HUD/MetaPanel"]
-offset_left = 34.0
-offset_top = 256.0
-offset_right = 466.0
-offset_bottom = 310.0
+offset_left = 24.0
+offset_top = 196.0
+offset_right = 436.0
+offset_bottom = 236.0
 process_mode = 3
 
+[node name="UpgradeButton4" type="Button" parent="HUD/MetaPanel"]
+offset_left = 24.0
+offset_top = 244.0
+offset_right = 436.0
+offset_bottom = 284.0
+process_mode = 3
+
+[node name="UpgradeButton5" type="Button" parent="HUD/MetaPanel"]
+offset_left = 452.0
+offset_top = 100.0
+offset_right = 864.0
+offset_bottom = 140.0
+process_mode = 3
+
+[node name="UpgradeButton6" type="Button" parent="HUD/MetaPanel"]
+offset_left = 452.0
+offset_top = 148.0
+offset_right = 864.0
+offset_bottom = 188.0
+process_mode = 3
+
+[node name="UpgradeButton7" type="Button" parent="HUD/MetaPanel"]
+offset_left = 452.0
+offset_top = 196.0
+offset_right = 864.0
+offset_bottom = 236.0
+process_mode = 3
+
+[node name="DifficultyButton" type="Button" parent="HUD/MetaPanel"]
+offset_left = 24.0
+offset_top = 300.0
+offset_right = 864.0
+offset_bottom = 344.0
+process_mode = 3
+toggle_mode = true
+text = "Pro Difficulty [OFF]  |  Tougher enemies, +50% run reward"
+
 [node name="BackButton" type="Button" parent="HUD/MetaPanel"]
-offset_left = 150.0
-offset_top = 348.0
-offset_right = 350.0
-offset_bottom = 388.0
+offset_left = 375.0
+offset_top = 360.0
+offset_right = 525.0
+offset_bottom = 404.0
 process_mode = 3
 text = "Back"
 

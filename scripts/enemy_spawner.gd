@@ -28,8 +28,11 @@ const WAVE_PHASES := [
 @export var blocker_chance_max := 0.12
 @export var coach_chance_max := 0.08
 
+const PRO_DIFFICULTY_PRESSURE_MULTIPLIER := 1.2
+
 var _spawn_timer := 0.0
 var pressure := 1.0
+var pro_difficulty := false
 var _phase_index := -1
 var _phase_interval := 2.5
 var _phase_cap := 12
@@ -82,7 +85,8 @@ func _spawn_enemy() -> void:
 	get_parent().add_child(enemy)
 
 func set_pressure(value: float) -> void:
-	pressure = maxf(value, 1.0)
+	var effective_value := value * PRO_DIFFICULTY_PRESSURE_MULTIPLIER if pro_difficulty else value
+	pressure = maxf(effective_value, 1.0)
 	spawn_interval = maxf(_phase_interval / pressure, 0.65)
 	max_enemies = _phase_cap + int((pressure - 1.0) * 6.0)
 

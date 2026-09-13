@@ -31,7 +31,12 @@ const HALFTIME_WARNING_SECONDS := 3.0
 	$HUD/MetaPanel/UpgradeButton1,
 	$HUD/MetaPanel/UpgradeButton2,
 	$HUD/MetaPanel/UpgradeButton3,
+	$HUD/MetaPanel/UpgradeButton4,
+	$HUD/MetaPanel/UpgradeButton5,
+	$HUD/MetaPanel/UpgradeButton6,
+	$HUD/MetaPanel/UpgradeButton7,
 ]
+@onready var difficulty_button: Button = $HUD/MetaPanel/DifficultyButton
 @onready var pause_panel: Panel = $HUD/PausePanel
 @onready var settings_panel: Panel = $HUD/SettingsPanel
 @onready var volume_slider: HSlider = $HUD/SettingsPanel/VolumeSlider
@@ -58,6 +63,7 @@ var enemies_defeated := 0
 var xp_earned := 0
 var damage_events := 0
 var weapon_hits: Dictionary = {}
+var pro_difficulty_active := false
 
 const UPGRADE_OPTIONS := [
 	{"id": "tackle_unlock", "label": "Unlock Tackle Burst (close-range damage)", "category": "weapon"},
@@ -86,6 +92,7 @@ func _ready() -> void:
 	$HUD/MetaPanel/BackButton.pressed.connect(_close_meta_upgrades)
 	for index in meta_buttons.size():
 		meta_buttons[index].pressed.connect(_purchase_meta_upgrade.bind(index))
+	difficulty_button.toggled.connect(_on_difficulty_toggled)
 	$HUD/GameOverPanel/RestartButton.pressed.connect(_restart_run)
 	$HUD/VictoryPanel/RestartButton.pressed.connect(_restart_run)
 	$HUD/PausePanel/ResumeButton.pressed.connect(_resume_run)
@@ -130,7 +137,7 @@ func _configure_focus() -> void:
 		$HUD/ProfilePanel/Slot3,
 		$HUD/ProfilePanel/MetaButton,
 	])
-	_set_vertical_focus(meta_buttons + [$HUD/MetaPanel/BackButton])
+	_set_vertical_focus(meta_buttons + [difficulty_button, $HUD/MetaPanel/BackButton])
 	_set_vertical_focus(upgrade_buttons)
 	_set_vertical_focus([
 		$HUD/PausePanel/ResumeButton,
@@ -402,10 +409,12 @@ func _start_run() -> void:
 	xp_earned = 0
 	damage_events = 0
 	weapon_hits = {}
+	pro_difficulty_active = ProfileManager.is_pro_difficulty()
 	title_panel.visible = false
 	profile_panel.visible = false
 	ProfileManager.mark_played()
 	player.apply_profile_upgrades(ProfileManager.selected_unlocks())
+	enemy_spawner.pro_difficulty = pro_difficulty_active
 	enemy_spawner.reset_run()
 	boss_status.text = ""
 	wave_status.visible = false
@@ -498,6 +507,8 @@ func _grant_run_reward(victory: bool) -> void:
 		return
 	reward_granted = true
 	last_run_reward = 100 if victory else min(50, 10 + int(survival_time / 30.0))
+	if pro_difficulty_active:
+		last_run_reward = int(round(last_run_reward * 1.5))
 	ProfileManager.add_currency(last_run_reward)
 
 func _restart_run() -> void:
@@ -544,6 +555,10 @@ func _purchase_meta_upgrade(index: int) -> void:
 		meta_status.text = "Cannot purchase: already owned or insufficient coins.\nCoins: %d" % ProfileManager.currency()
 	_refresh_meta_upgrades()
 
+func _on_difficulty_toggled(pressed: bool) -> void:
+	ProfileManager.set_pro_difficulty(pressed)
+	_refresh_meta_upgrades()
+
 func _refresh_meta_upgrades() -> void:
 	if not is_instance_valid(meta_panel):
 		return
@@ -552,6 +567,10 @@ func _refresh_meta_upgrades() -> void:
 		var upgrade: Dictionary = ProfileManager.META_UPGRADES[index]
 		var owned := ProfileManager.has_unlock(upgrade["id"])
 		meta_buttons[index].text = "%s%s" % [upgrade["label"], "  [OWNED]" if owned else "  Cost: %d" % upgrade["cost"]]
+	if is_instance_valid(difficulty_button):
+		var pro := ProfileManager.is_pro_difficulty()
+		difficulty_button.set_pressed_no_signal(pro)
+		difficulty_button.text = "Pro Difficulty [%s]  |  Tougher enemies, +50%% run reward" % ("ON" if pro else "OFF")
 
 func _refresh_profile_buttons() -> void:
 	var buttons: Array[Button] = [

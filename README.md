@@ -68,7 +68,18 @@ Distinct cues cover: football throw, Tackle Burst, Hail Mary, Stiff Arm, enemy h
 
 Before a run, choose one of exactly three profile slots. Empty slots create a profile; occupied slots show created/last-played metadata and permanent currency/unlock placeholders. Profiles are stored as JSON at Godot's `user://football_survivation_profiles.json` location. Only profile metadata is saved: active run state, XP, upgrades, enemies, pickups, projectiles, and timer are always reset for a new run. Switching profiles never overwrites another slot.
 
-Runs award permanent currency once at the end: victory grants 100 coins; game over grants 10 coins plus 1 per 30 seconds survived, capped at 50. The end overlay shows the reward and new total. From profile selection, open Front Office Upgrades to buy permanent upgrades: Goal Line Body (+20 starting max health, 50 coins), Combine Speed (+30 starting movement speed, 50 coins), or Passing Game (+8 starting football damage, 75 coins). Purchases are one-time, reject insufficient funds, and apply only when the next run starts.
+Runs award permanent currency once at the end: victory grants 100 coins; game over grants 10 coins plus 1 per 30 seconds survived, capped at 50 (Pro Difficulty adds a further +50% bonus). The end overlay shows the reward and new total. From profile selection, open Front Office Upgrades to buy permanent upgrades and toggle a difficulty modifier:
+
+- Goal Line Body: +20 starting max health — 50 coins
+- Combine Speed: +30 starting movement speed — 50 coins
+- Passing Game: +8 starting football damage — 75 coins
+- Two-Way Signing: start with Tackle Burst already unlocked — 100 coins
+- Deep Threat Scout: start with Hail Mary already unlocked — 120 coins
+- Extra Muscle: +10 starting Tackle Burst and Stiff Arm damage — 70 coins
+- Film Study: +15% XP gained for the whole run — 90 coins
+- Pro Difficulty (toggle, free): tougher enemies via a higher pressure curve, in exchange for a +50% end-of-run coin reward. Toggling does not cost currency and can be switched off again at any time from Front Office.
+
+Purchases are one-time (owned upgrades are marked and cannot be re-bought), reject insufficient funds, and — along with the Pro Difficulty toggle — only take effect starting with the next run; they never alter an active run mid-session. Weapons purchased as starting unlocks no longer need to be found via in-run level-ups, but the level-up unlock options remain available as a fallback for any weapon not already purchased, with no duplicate unlocks possible either way.
 
 Defenders appear around the arena perimeter and damage the player on contact. Fast runners begin joining the waves as survival pressure rises; they move faster but have lower health and contact damage. Player health is displayed in the top-left HUD; the game-over panel appears when health reaches zero.
 

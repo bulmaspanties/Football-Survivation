@@ -11,6 +11,10 @@ const META_UPGRADES := [
 	{"id": "iron_body", "label": "Goal Line Body: +20 starting max health", "cost": 50},
 	{"id": "speed_training", "label": "Combine Speed: +30 starting movement speed", "cost": 50},
 	{"id": "passing_game", "label": "Passing Game: +8 starting football damage", "cost": 75},
+	{"id": "tackle_signing", "label": "Two-Way Signing: start with Tackle Burst unlocked", "cost": 100},
+	{"id": "hail_mary_scout", "label": "Deep Threat Scout: start with Hail Mary unlocked", "cost": 120},
+	{"id": "extra_muscle", "label": "Extra Muscle: +10 starting Tackle Burst & Stiff Arm damage", "cost": 70},
+	{"id": "film_study", "label": "Film Study: +15% XP gained", "cost": 90},
 ]
 
 func _ready() -> void:
@@ -45,6 +49,17 @@ func add_currency(amount: int) -> void:
 	profiles[selected_slot]["permanent_currency"] = currency() + amount
 	_save_profiles()
 
+func is_pro_difficulty() -> bool:
+	if selected_slot < 0 or selected_slot >= SLOT_COUNT:
+		return false
+	return bool(profiles[selected_slot].get("pro_difficulty", false))
+
+func set_pro_difficulty(enabled: bool) -> void:
+	if selected_slot < 0 or selected_slot >= SLOT_COUNT:
+		return
+	profiles[selected_slot]["pro_difficulty"] = enabled
+	_save_profiles()
+
 func has_unlock(upgrade_id: String) -> bool:
 	if selected_slot < 0 or selected_slot >= SLOT_COUNT:
 		return false
@@ -71,10 +86,11 @@ func profile_summary(slot: int) -> String:
 	if slot < 0 or slot >= SLOT_COUNT or profiles[slot].is_empty():
 		return "Empty slot\nSelect to create profile"
 	var profile := profiles[slot]
-	return "Created: %s\nLast played: %s\nCoins: %d" % [
+	return "Created: %s\nLast played: %s\nCoins: %d\nDifficulty: %s" % [
 		profile.get("created", "Unknown"),
 		profile.get("last_played", "Never"),
 		int(profile.get("permanent_currency", 0)),
+		"PRO" if bool(profile.get("pro_difficulty", false)) else "NORMAL",
 	]
 
 func _new_profile() -> Dictionary:
@@ -85,6 +101,7 @@ func _new_profile() -> Dictionary:
 		"last_played": "Never",
 		"permanent_currency": 0,
 		"unlocks": [],
+		"pro_difficulty": false,
 	}
 
 func _load_profiles() -> void:
@@ -124,6 +141,8 @@ func _normalize_profile(raw: Dictionary) -> Dictionary:
 	normalized["last_played"] = last_played
 	normalized["permanent_currency"] = max(currency, 0)
 	normalized["unlocks"] = unlocks.duplicate()
+	var pro_difficulty = raw.get("pro_difficulty", false)
+	normalized["pro_difficulty"] = pro_difficulty if pro_difficulty is bool else false
 	return normalized
 
 func _save_profiles() -> void:

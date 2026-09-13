@@ -19,6 +19,7 @@ var experience_to_next_level := 5
 var tackle_unlocked := false
 var hail_mary_unlocked := false
 var stiff_arm_unlocked := false
+var xp_multiplier := 1.0
 var _knockback_velocity := Vector2.ZERO
 var _damage_cooldown_remaining := 0.0
 var _feedback_remaining := 0.0
@@ -59,8 +60,9 @@ func apply_knockback(force: Vector2) -> void:
 func collect_experience(amount: int) -> void:
 	if amount <= 0 or health <= 0.0:
 		return
-	experience += amount
-	experience_collected.emit(amount)
+	var gained := int(round(amount * xp_multiplier))
+	experience += gained
+	experience_collected.emit(gained)
 	while experience >= experience_to_next_level:
 		experience -= experience_to_next_level
 		level += 1
@@ -127,4 +129,13 @@ func apply_profile_upgrades(unlocks: Array) -> void:
 				speed += 30.0
 			"passing_game":
 				($AutoWeapon as AutoWeapon).upgrade_damage(8.0)
+			"tackle_signing":
+				tackle_unlocked = true
+			"hail_mary_scout":
+				hail_mary_unlocked = true
+			"extra_muscle":
+				($TackleWeapon as TackleWeapon).upgrade_damage(10.0)
+				($StiffArm as StiffArm).upgrade_damage(10.0)
+			"film_study":
+				xp_multiplier += 0.15
 	health_changed.emit(health, max_health)
