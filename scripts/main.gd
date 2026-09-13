@@ -18,6 +18,11 @@ const ESCALATION_START_SECONDS := 30.0
 @onready var victory_panel: Panel = $HUD/VictoryPanel
 @onready var enemy_spawner: EnemySpawner = $EnemySpawner
 @onready var title_panel: Panel = $HUD/TitlePanel
+@onready var pause_panel: Panel = $HUD/PausePanel
+@onready var settings_panel: Panel = $HUD/SettingsPanel
+@onready var volume_slider: HSlider = $HUD/SettingsPanel/VolumeSlider
+@onready var mute_check: CheckButton = $HUD/SettingsPanel/MuteCheck
+@onready var fullscreen_check: CheckButton = $HUD/SettingsPanel/FullscreenCheck
 @onready var auto_weapon: AutoWeapon = $Player/AutoWeapon
 @onready var tackle_weapon: TackleWeapon = $Player/TackleWeapon
 @onready var hail_mary_weapon: HailMaryWeapon = $Player/HailMaryWeapon
@@ -46,6 +51,17 @@ func _ready() -> void:
 	$HUD/TitlePanel/StartButton.pressed.connect(_start_run)
 	$HUD/GameOverPanel/RestartButton.pressed.connect(_restart_run)
 	$HUD/VictoryPanel/RestartButton.pressed.connect(_restart_run)
+	$HUD/PausePanel/ResumeButton.pressed.connect(_resume_run)
+	$HUD/PausePanel/RestartButton.pressed.connect(_restart_run)
+	$HUD/PausePanel/TitleButton.pressed.connect(_return_to_title)
+	$HUD/PausePanel/SettingsButton.pressed.connect(_open_settings)
+	$HUD/SettingsPanel/BackButton.pressed.connect(_close_settings)
+	$HUD/SettingsPanel/ResetButton.pressed.connect(_reset_settings)
+	volume_slider.value_changed.connect(_on_volume_changed)
+	mute_check.toggled.connect(_on_mute_toggled)
+	fullscreen_check.toggled.connect(_on_fullscreen_toggled)
+	SettingsManager.settings_changed.connect(_sync_settings_controls)
+	_sync_settings_controls()
 	for index in upgrade_buttons.size():
 		upgrade_buttons[index].pressed.connect(_on_upgrade_selected.bind(index))
 	player.set_physics_process(false)
@@ -57,7 +73,7 @@ func _ready() -> void:
 	get_tree().paused = true
 
 func _process(delta: float) -> void:
-	if not run_started or run_finished:
+	if get_tree().paused or not run_started or run_finished:
 		return
 	survival_time = minf(survival_time + delta, RUN_DURATION_SECONDS)
 	survival_label.text = "Survive: %s / %s" % [_format_time(survival_time), _format_time(RUN_DURATION_SECONDS)]
@@ -112,6 +128,56 @@ func _on_upgrade_selected(button_index: int) -> void:
 	upgrade_panel.visible = false
 	get_tree().paused = false
 
+func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("pause_game") and not event.is_echo():
+		_toggle_pause()
+
+func _toggle_pause() -> void:
+	if not run_started or run_finished or title_panel.visible or upgrade_panel.visible:
+		return
+	if settings_panel.visible:
+		_close_settings()
+	elif pause_panel.visible:
+		_resume_run()
+	else:
+		pause_panel.visible = true
+		get_tree().paused = true
+		$HUD/PausePanel/ResumeButton.grab_focus()
+
+func _resume_run() -> void:
+	settings_panel.visible = false
+	pause_panel.visible = false
+	get_tree().paused = false
+
+func _open_settings() -> void:
+	settings_panel.visible = true
+	pause_panel.visible = false
+	volume_slider.grab_focus()
+
+func _close_settings() -> void:
+	settings_panel.visible = false
+	pause_panel.visible = true
+	$HUD/PausePanel/SettingsButton.grab_focus()
+
+func _reset_settings() -> void:
+	SettingsManager.reset_defaults()
+	_sync_settings_controls()
+	volume_slider.grab_focus()
+
+func _on_volume_changed(value: float) -> void:
+	SettingsManager.set_master_volume(value)
+
+func _on_mute_toggled(value: bool) -> void:
+	SettingsManager.set_muted(value)
+
+func _on_fullscreen_toggled(value: bool) -> void:
+	SettingsManager.set_fullscreen(value)
+
+func _sync_settings_controls() -> void:
+	volume_slider.set_value_no_signal(SettingsManager.master_volume)
+	mute_check.set_pressed_no_signal(SettingsManager.muted)
+	fullscreen_check.set_pressed_no_signal(SettingsManager.fullscreen)
+
 func _start_run() -> void:
 	if run_started:
 		return
@@ -132,6 +198,8 @@ func _on_player_died() -> void:
 	run_finished = true
 	enemy_spawner.set_process(false)
 	upgrade_panel.visible = false
+	pause_panel.visible = false
+	settings_panel.visible = false
 	get_tree().paused = false
 	game_over_panel.visible = true
 
@@ -140,9 +208,15 @@ func _finish_victory() -> void:
 	enemy_spawner.set_process(false)
 	player.set_physics_process(false)
 	upgrade_panel.visible = false
+	pause_panel.visible = false
+	settings_panel.visible = false
 	victory_panel.visible = true
 	get_tree().paused = true
 
 func _restart_run() -> void:
+	get_tree().paused = false
+	get_tree().reload_current_scene()
+
+func _return_to_title() -> void:
 	get_tree().paused = false
 	get_tree().reload_current_scene()

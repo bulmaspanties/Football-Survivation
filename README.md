@@ -53,8 +53,11 @@ The command should exit successfully only when the project and its scripts/scene
 - **S / Down Arrow**: move down
 - **A / Left Arrow**: move left
 - **D / Right Arrow**: move right
+- **Escape / P**: pause or resume during an active run
 
 Movement supports all eight directions and is normalized so diagonal movement is not faster.
+
+The pause menu provides Resume, Restart Run, Return to Title, and Settings controls. Settings include a session-persistent master volume slider, mute toggle, fullscreen/windowed toggle, and reset button. Settings remain active while navigating or restarting within the current Godot session.
 
 Defenders appear around the arena perimeter and damage the player on contact. Fast runners begin joining the waves as survival pressure rises; they move faster but have lower health and contact damage. Player health is displayed in the top-left HUD; the game-over panel appears when health reaches zero.
 
