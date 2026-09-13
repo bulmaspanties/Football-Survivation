@@ -7,6 +7,12 @@ var selected_slot := -1
 var profile_selection_requested := true
 var profiles: Array[Dictionary] = []
 
+const META_UPGRADES := [
+	{"id": "iron_body", "label": "Iron Body: +20 starting max health", "cost": 50},
+	{"id": "speed_training", "label": "Speed Training: +30 starting movement speed", "cost": 50},
+	{"id": "passing_game", "label": "Passing Game: +8 starting football damage", "cost": 75},
+]
+
 func _ready() -> void:
 	_load_profiles()
 
@@ -27,6 +33,39 @@ func mark_played() -> void:
 		return
 	profiles[selected_slot]["last_played"] = Time.get_datetime_string_from_system()
 	_save_profiles()
+
+func currency() -> int:
+	if selected_slot < 0 or selected_slot >= SLOT_COUNT:
+		return 0
+	return int(profiles[selected_slot].get("permanent_currency", 0))
+
+func add_currency(amount: int) -> void:
+	if selected_slot < 0 or selected_slot >= SLOT_COUNT or amount <= 0:
+		return
+	profiles[selected_slot]["permanent_currency"] = currency() + amount
+	_save_profiles()
+
+func has_unlock(upgrade_id: String) -> bool:
+	if selected_slot < 0 or selected_slot >= SLOT_COUNT:
+		return false
+	return upgrade_id in profiles[selected_slot].get("unlocks", [])
+
+func selected_unlocks() -> Array:
+	if selected_slot < 0 or selected_slot >= SLOT_COUNT:
+		return []
+	return profiles[selected_slot].get("unlocks", []).duplicate()
+
+func purchase_upgrade(upgrade_id: String) -> bool:
+	for upgrade in META_UPGRADES:
+		if upgrade["id"] != upgrade_id:
+			continue
+		if has_unlock(upgrade_id) or currency() < int(upgrade["cost"]):
+			return false
+		profiles[selected_slot]["permanent_currency"] = currency() - int(upgrade["cost"])
+		profiles[selected_slot]["unlocks"].append(upgrade_id)
+		_save_profiles()
+		return true
+	return false
 
 func profile_summary(slot: int) -> String:
 	if slot < 0 or slot >= SLOT_COUNT or profiles[slot].is_empty():

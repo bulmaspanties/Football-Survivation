@@ -107,3 +107,15 @@ func apply_upgrade(upgrade_id: String) -> void:
 		"stiff_arm_cooldown":
 			if stiff_arm_unlocked:
 				stiff_arm.upgrade_cooldown(0.25)
+
+func apply_profile_upgrades(unlocks: Array) -> void:
+	for unlock in unlocks:
+		match str(unlock):
+			"iron_body":
+				max_health += 20.0
+				health = max_health
+			"speed_training":
+				speed += 30.0
+			"passing_game":
+				($AutoWeapon as AutoWeapon).upgrade_damage(8.0)
+	health_changed.emit(health, max_health)

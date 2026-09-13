@@ -61,6 +61,8 @@ The pause menu provides Resume, Restart Run, Return to Title, Profile Selection,
 
 Before a run, choose one of exactly three profile slots. Empty slots create a profile; occupied slots show created/last-played metadata and permanent currency/unlock placeholders. Profiles are stored as JSON at Godot's `user://football_survivation_profiles.json` location. Only profile metadata is saved: active run state, XP, upgrades, enemies, pickups, projectiles, and timer are always reset for a new run. Switching profiles never overwrites another slot.
 
+Runs award permanent currency once at the end: victory grants 100 coins; game over grants 10 coins plus 1 per 30 seconds survived, capped at 50. The end overlay shows the reward and new total. From profile selection, open Meta Upgrades to buy permanent upgrades: Iron Body (+20 starting max health, 50 coins), Speed Training (+30 starting movement speed, 50 coins), or Passing Game (+8 starting football damage, 75 coins). Purchases are one-time, reject insufficient funds, and apply only when the next run starts.
+
 Defenders appear around the arena perimeter and damage the player on contact. Fast runners begin joining the waves as survival pressure rises; they move faster but have lower health and contact damage. Player health is displayed in the top-left HUD; the game-over panel appears when health reaches zero.
 
 Throwers maintain a preferred distance and periodically launch enemy footballs; Blockers are larger and push the player away on contact; Coaches periodically refresh bounded speed/contact-damage buffs on nearby enemies and remove their buffs when defeated. Enemy projectiles only damage the player, never enemies or player-owned weapons. Referee roles are not implemented yet.

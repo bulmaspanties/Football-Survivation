@@ -320,6 +320,14 @@ text = "Select an empty slot to create a profile.\nRun progress is never saved h
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="MetaButton" type="Button" parent="HUD/ProfilePanel"]
+offset_left = 120.0
+offset_top = 398.0
+offset_right = 380.0
+offset_bottom = 438.0
+process_mode = 3
+text = "META UPGRADES"
+
 [node name="HealthPanel" type="Panel" parent="HUD"]
 offset_left = 20.0
 offset_top = 20.0
@@ -415,17 +423,17 @@ process_mode = 3
 
 [node name="GameOverPanel" type="Panel" parent="HUD"]
 visible = false
-offset_left = 426.0
-offset_top = 258.0
-offset_right = 726.0
-offset_bottom = 390.0
+offset_left = 386.0
+offset_top = 226.0
+offset_right = 766.0
+offset_bottom = 422.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_game_over")
 
 [node name="Label" type="Label" parent="HUD/GameOverPanel"]
 offset_left = 20.0
 offset_top = 20.0
-offset_right = 280.0
+offset_right = 360.0
 offset_bottom = 112.0
 theme_override_colors/font_color = Color(1, 0.86, 0.86, 1)
 text = "GAME OVER\nThe arena got you."
@@ -433,12 +441,19 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="RestartButton" type="Button" parent="HUD/GameOverPanel"]
-offset_left = 75.0
-offset_top = 88.0
-offset_right = 225.0
-offset_bottom = 124.0
+offset_left = 115.0
+offset_top = 148.0
+offset_right = 265.0
+offset_bottom = 184.0
 process_mode = 3
 text = "Restart Run"
+
+[node name="Currency" type="Label" parent="HUD/GameOverPanel"]
+offset_left = 20.0
+offset_top = 94.0
+offset_right = 360.0
+offset_bottom = 136.0
+horizontal_alignment = 1
 
 [node name="VictoryPanel" type="Panel" parent="HUD"]
 visible = false
@@ -460,6 +475,13 @@ text = "VICTORY!\nYou survived the run."
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="Currency" type="Label" parent="HUD/VictoryPanel"]
+offset_left = 20.0
+offset_top = 84.0
+offset_right = 280.0
+offset_bottom = 124.0
+horizontal_alignment = 1
+
 [node name="RestartButton" type="Button" parent="HUD/VictoryPanel"]
 offset_left = 75.0
 offset_top = 128.0
@@ -467,6 +489,62 @@ offset_right = 225.0
 offset_bottom = 164.0
 process_mode = 3
 text = "Play Again"
+
+[node name="MetaPanel" type="Panel" parent="HUD"]
+visible = false
+process_mode = 3
+offset_left = 326.0
+offset_top = 104.0
+offset_right = 826.0
+offset_bottom = 544.0
+mouse_filter = 1
+theme_override_styles/panel = SubResource("StyleBoxFlat_title")
+
+[node name="Title" type="Label" parent="HUD/MetaPanel"]
+offset_left = 24.0
+offset_top = 20.0
+offset_right = 476.0
+offset_bottom = 58.0
+theme_override_colors/font_color = Color(1, 0.86, 0.34, 1)
+theme_override_font_sizes/font_size = 26
+text = "META UPGRADES"
+horizontal_alignment = 1
+
+[node name="Status" type="Label" parent="HUD/MetaPanel"]
+offset_left = 34.0
+offset_top = 64.0
+offset_right = 466.0
+offset_bottom = 104.0
+horizontal_alignment = 1
+
+[node name="UpgradeButton1" type="Button" parent="HUD/MetaPanel"]
+offset_left = 34.0
+offset_top = 120.0
+offset_right = 466.0
+offset_bottom = 174.0
+process_mode = 3
+
+[node name="UpgradeButton2" type="Button" parent="HUD/MetaPanel"]
+offset_left = 34.0
+offset_top = 188.0
+offset_right = 466.0
+offset_bottom = 242.0
+process_mode = 3
+
+[node name="UpgradeButton3" type="Button" parent="HUD/MetaPanel"]
+offset_left = 34.0
+offset_top = 256.0
+offset_right = 466.0
+offset_bottom = 310.0
+process_mode = 3
+
+[node name="BackButton" type="Button" parent="HUD/MetaPanel"]
+offset_left = 150.0
+offset_top = 348.0
+offset_right = 350.0
+offset_bottom = 388.0
+process_mode = 3
+text = "Back"
 
 [node name="PausePanel" type="Panel" parent="HUD"]
 visible = false

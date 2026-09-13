@@ -19,6 +19,13 @@ const ESCALATION_START_SECONDS := 30.0
 @onready var enemy_spawner: EnemySpawner = $EnemySpawner
 @onready var title_panel: Panel = $HUD/TitlePanel
 @onready var profile_panel: Panel = $HUD/ProfilePanel
+@onready var meta_panel: Panel = $HUD/MetaPanel
+@onready var meta_status: Label = $HUD/MetaPanel/Status
+@onready var meta_buttons: Array[Button] = [
+	$HUD/MetaPanel/UpgradeButton1,
+	$HUD/MetaPanel/UpgradeButton2,
+	$HUD/MetaPanel/UpgradeButton3,
+]
 @onready var pause_panel: Panel = $HUD/PausePanel
 @onready var settings_panel: Panel = $HUD/SettingsPanel
 @onready var volume_slider: HSlider = $HUD/SettingsPanel/VolumeSlider
@@ -28,10 +35,14 @@ const ESCALATION_START_SECONDS := 30.0
 @onready var tackle_weapon: TackleWeapon = $Player/TackleWeapon
 @onready var hail_mary_weapon: HailMaryWeapon = $Player/HailMaryWeapon
 @onready var stiff_arm: StiffArm = $Player/StiffArm
+@onready var victory_currency: Label = $HUD/VictoryPanel/Currency
+@onready var game_over_currency: Label = $HUD/GameOverPanel/Currency
 
 var survival_time := 0.0
 var run_finished := false
 var run_started := false
+var reward_granted := false
+var last_run_reward := 0
 
 const UPGRADE_OPTIONS := [
 	{"id": "tackle_unlock", "label": "Unlock Tackle Burst (close-range damage)", "category": "weapon"},
@@ -53,6 +64,10 @@ func _ready() -> void:
 	$HUD/ProfilePanel/Slot1.pressed.connect(_select_profile.bind(0))
 	$HUD/ProfilePanel/Slot2.pressed.connect(_select_profile.bind(1))
 	$HUD/ProfilePanel/Slot3.pressed.connect(_select_profile.bind(2))
+	$HUD/ProfilePanel/MetaButton.pressed.connect(_open_meta_upgrades)
+	$HUD/MetaPanel/BackButton.pressed.connect(_close_meta_upgrades)
+	for index in meta_buttons.size():
+		meta_buttons[index].pressed.connect(_purchase_meta_upgrade.bind(index))
 	$HUD/GameOverPanel/RestartButton.pressed.connect(_restart_run)
 	$HUD/VictoryPanel/RestartButton.pressed.connect(_restart_run)
 	$HUD/PausePanel/ResumeButton.pressed.connect(_resume_run)
@@ -70,6 +85,8 @@ func _ready() -> void:
 	_refresh_profile_buttons()
 	profile_panel.visible = ProfileManager.profile_selection_requested or ProfileManager.selected_slot < 0
 	title_panel.visible = not profile_panel.visible
+	meta_panel.visible = false
+	_refresh_meta_upgrades()
 	for index in upgrade_buttons.size():
 		upgrade_buttons[index].pressed.connect(_on_upgrade_selected.bind(index))
 	player.set_physics_process(false)
@@ -187,10 +204,13 @@ func _start_run() -> void:
 		return
 	run_started = true
 	run_finished = false
+	reward_granted = false
+	last_run_reward = 0
 	survival_time = 0.0
 	title_panel.visible = false
 	profile_panel.visible = false
 	ProfileManager.mark_played()
+	player.apply_profile_upgrades(ProfileManager.selected_unlocks())
 	enemy_spawner.reset_run()
 	player.set_physics_process(true)
 	auto_weapon.set_process(true)
@@ -206,8 +226,10 @@ func _on_player_died() -> void:
 	upgrade_panel.visible = false
 	pause_panel.visible = false
 	settings_panel.visible = false
+	_grant_run_reward(false)
 	get_tree().paused = false
 	game_over_panel.visible = true
+	game_over_currency.text = "Profile reward: +%d coins\nTotal coins: %d" % [last_run_reward, ProfileManager.currency()]
 
 func _finish_victory() -> void:
 	run_finished = true
@@ -216,8 +238,17 @@ func _finish_victory() -> void:
 	upgrade_panel.visible = false
 	pause_panel.visible = false
 	settings_panel.visible = false
+	_grant_run_reward(true)
 	victory_panel.visible = true
+	victory_currency.text = "Profile reward: +%d coins\nTotal coins: %d" % [last_run_reward, ProfileManager.currency()]
 	get_tree().paused = true
+
+func _grant_run_reward(victory: bool) -> void:
+	if reward_granted:
+		return
+	reward_granted = true
+	last_run_reward = 100 if victory else min(50, 10 + int(survival_time / 30.0))
+	ProfileManager.add_currency(last_run_reward)
 
 func _restart_run() -> void:
 	get_tree().paused = false
@@ -238,6 +269,39 @@ func _select_profile(slot: int) -> void:
 	profile_panel.visible = false
 	title_panel.visible = true
 	$HUD/TitlePanel/StartButton.grab_focus()
+
+func _open_meta_upgrades() -> void:
+	profile_panel.visible = false
+	title_panel.visible = false
+	meta_panel.visible = true
+	_refresh_meta_upgrades()
+	meta_buttons[0].grab_focus()
+
+func _close_meta_upgrades() -> void:
+	meta_panel.visible = false
+	profile_panel.visible = ProfileManager.selected_slot < 0
+	title_panel.visible = not profile_panel.visible
+	if profile_panel.visible:
+		$HUD/ProfilePanel/Slot1.grab_focus()
+	else:
+		$HUD/TitlePanel/StartButton.grab_focus()
+
+func _purchase_meta_upgrade(index: int) -> void:
+	var upgrade_id: String = ProfileManager.META_UPGRADES[index]["id"]
+	if ProfileManager.purchase_upgrade(upgrade_id):
+		meta_status.text = "Purchased. Applies on the next run.\nCoins: %d" % ProfileManager.currency()
+	else:
+		meta_status.text = "Cannot purchase: already owned or insufficient coins.\nCoins: %d" % ProfileManager.currency()
+	_refresh_meta_upgrades()
+
+func _refresh_meta_upgrades() -> void:
+	if not is_instance_valid(meta_panel):
+		return
+	meta_status.text = "Permanent coins: %d\nPurchased upgrades apply on your next run." % ProfileManager.currency()
+	for index in meta_buttons.size():
+		var upgrade: Dictionary = ProfileManager.META_UPGRADES[index]
+		var owned := ProfileManager.has_unlock(upgrade["id"])
+		meta_buttons[index].text = "%s%s" % [upgrade["label"], "  [OWNED]" if owned else "  Cost: %d" % upgrade["cost"]]
 
 func _refresh_profile_buttons() -> void:
 	var buttons: Array[Button] = [
