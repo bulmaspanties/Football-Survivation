@@ -19,7 +19,7 @@ func _process(delta: float) -> void:
 	_fire_timer = maxf(_fire_timer - delta, 0.0)
 	if _fire_timer > 0.0:
 		return
-	var target := _nearest_enemy()
+	var target: Enemy = _nearest_enemy()
 	if target == null:
 		return
 	_fire_timer = fire_interval
@@ -29,7 +29,7 @@ func _nearest_enemy() -> Enemy:
 	var nearest: Enemy
 	var nearest_distance := target_range
 	for node in get_tree().get_nodes_in_group("enemy"):
-		var enemy := node as Enemy
+		var enemy: Enemy = node as Enemy
 		if not is_instance_valid(enemy):
 			continue
 		var distance := _player.global_position.distance_to(enemy.global_position)
@@ -41,7 +41,7 @@ func _nearest_enemy() -> Enemy:
 func _fire_at(target: Enemy) -> void:
 	if projectile_scene == null:
 		return
-	var football := projectile_scene.instantiate() as Football
+	var football: Football = projectile_scene.instantiate() as Football
 	if football == null:
 		return
 	get_tree().current_scene.add_child(football)

@@ -49,7 +49,7 @@ func take_damage(amount: float) -> void:
 	health = maxf(health - amount, 0.0)
 	if health <= 0.0:
 		_drop_experience()
-	_spawn_death_burst()
+		_spawn_death_burst()
 		queue_free()
 	else:
 		_hit_flash_remaining = 0.1
