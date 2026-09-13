@@ -118,6 +118,7 @@ func _ready() -> void:
 	get_tree().paused = true
 	call_deferred("_focus_front_overlay")
 	_show_controls_hint()
+	_wire_menu_audio_feedback($HUD)
 
 func _configure_focus() -> void:
 	_set_vertical_focus([
@@ -164,12 +165,28 @@ func _focus_front_overlay() -> void:
 	elif title_panel.visible:
 		$HUD/TitlePanel/StartButton.grab_focus()
 
+func _wire_menu_audio_feedback(node: Node) -> void:
+	for child in node.get_children():
+		if child is Button:
+			child.focus_entered.connect(_on_menu_navigate)
+			child.pressed.connect(_on_menu_confirm)
+		elif child is HSlider:
+			child.focus_entered.connect(_on_menu_navigate)
+		_wire_menu_audio_feedback(child)
+
+func _on_menu_navigate() -> void:
+	AudioManager.play_cue("menu_navigate")
+
+func _on_menu_confirm() -> void:
+	AudioManager.play_cue("menu_confirm")
+
 func _on_wave_phase_changed(title: String, details: String) -> void:
 	if not run_started or run_finished:
 		return
 	wave_status.text = "%s\n%s" % [title, details]
 	wave_status.visible = true
 	wave_banner_remaining = 4.0
+	AudioManager.play_cue("phase_change")
 
 func _on_enemy_defeated() -> void:
 	enemies_defeated += 1
@@ -193,9 +210,11 @@ func _on_enemy_damaged(position: Vector2, amount: float) -> void:
 
 func _on_player_damage_taken(_amount: float) -> void:
 	boss_status.text = "CONTACT! Protect the pocket."
+	AudioManager.play_cue("player_damage")
 
 func _on_player_experience_collected(amount: int) -> void:
 	xp_earned += amount
+	AudioManager.play_cue("xp_pickup")
 
 func _on_boss_defeated() -> void:
 	if boss_reward_granted:
@@ -230,6 +249,7 @@ func _trigger_halftime_boss() -> void:
 	boss_active = true
 	boss_warning_remaining = HALFTIME_WARNING_SECONDS
 	boss_status.text = "HALFTIME WARNING - ELITE TAKING THE FIELD"
+	AudioManager.play_cue("boss_warning")
 	enemy_spawner.spawn_boss()
 
 func _format_time(seconds: float) -> String:
@@ -253,6 +273,7 @@ func _on_player_level_up(new_level: int) -> void:
 	upgrade_panel.visible = true
 	get_tree().paused = true
 	upgrade_buttons[0].grab_focus()
+	AudioManager.play_cue("level_up")
 
 func _available_upgrade_options() -> Array[Dictionary]:
 	var options: Array[Dictionary] = []
@@ -440,6 +461,7 @@ func _on_player_died() -> void:
 	game_over_panel.visible = true
 	game_over_currency.text = _terminal_summary("Profile reward: +%d coins\nTotal coins: %d" % [last_run_reward, ProfileManager.currency()])
 	$HUD/GameOverPanel/RestartButton.grab_focus()
+	AudioManager.play_cue("game_over")
 
 func _finish_victory() -> void:
 	run_finished = true
@@ -453,6 +475,7 @@ func _finish_victory() -> void:
 	victory_currency.text = _terminal_summary("Profile reward: +%d coins\nTotal coins: %d" % [last_run_reward, ProfileManager.currency()])
 	get_tree().paused = true
 	$HUD/VictoryPanel/RestartButton.grab_focus()
+	AudioManager.play_cue("victory")
 
 func _terminal_summary(reward_text: String) -> String:
 	var summary := "%s\nDrive: %s  |  Defeated: %d\nXP earned: %d  |  Impact plays: %d" % [

@@ -49,6 +49,7 @@ func _fire_at(target: Enemy) -> void:
 	football.damage = projectile_damage
 	football.speed = projectile_speed
 	football.launch(_player.global_position.direction_to(target.global_position))
+	AudioManager.play_cue("football_throw")
 
 func upgrade_damage(amount: float) -> void:
 	projectile_damage += amount

@@ -121,11 +121,15 @@ func take_damage(amount: float) -> void:
 		_drop_experience()
 		_spawn_death_burst()
 		if is_boss:
+			AudioManager.play_cue("boss_defeat")
 			if main != null and main.has_method("_on_boss_defeated"):
 				main._on_boss_defeated()
+		else:
+			AudioManager.play_cue("enemy_defeat")
 		queue_free()
 	else:
 		_hit_flash_remaining = 0.1
+		AudioManager.play_cue("enemy_hit")
 
 func apply_support_buff(source: Node, duration: float, speed_multiplier: float, damage_multiplier: float) -> void:
 	if source == self:

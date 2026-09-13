@@ -32,6 +32,7 @@ func _process(delta: float) -> void:
 	projectile.global_position = _player.global_position
 	get_tree().current_scene.add_child(projectile)
 	projectile.launch(_player.global_position.direction_to(target.global_position))
+	AudioManager.play_cue("hail_mary_throw")
 	_cooldown_remaining = cooldown
 
 func _nearest_enemy() -> Enemy:

@@ -12,6 +12,7 @@ run/main_scene="res://scenes/Main.tscn"
 
 SettingsManager="*res://scripts/settings_manager.gd"
 ProfileManager="*res://scripts/profile_manager.gd"
+AudioManager="*res://scripts/audio_manager.gd"
 
 [display]
 
