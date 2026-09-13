@@ -8,8 +8,8 @@ var profile_selection_requested := true
 var profiles: Array[Dictionary] = []
 
 const META_UPGRADES := [
-	{"id": "iron_body", "label": "Iron Body: +20 starting max health", "cost": 50},
-	{"id": "speed_training", "label": "Speed Training: +30 starting movement speed", "cost": 50},
+	{"id": "iron_body", "label": "Goal Line Body: +20 starting max health", "cost": 50},
+	{"id": "speed_training", "label": "Combine Speed: +30 starting movement speed", "cost": 50},
 	{"id": "passing_game", "label": "Passing Game: +8 starting football damage", "cost": 75},
 ]
 

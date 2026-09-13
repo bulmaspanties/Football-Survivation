@@ -55,11 +55,11 @@ const UPGRADE_OPTIONS := [
 	{"id": "tackle_unlock", "label": "Unlock Tackle Burst (close-range damage)", "category": "weapon"},
 	{"id": "hail_mary_unlock", "label": "Unlock Hail Mary (long-range power shot)", "category": "weapon"},
 	{"id": "stiff_arm_unlock", "label": "Unlock Stiff Arm (melee arc)", "category": "weapon"},
-	{"id": "football_damage", "label": "Powerful kicks (+8 football damage)"},
-	{"id": "attack_cooldown", "label": "Quick feet (fire 0.12s faster)"},
-	{"id": "projectile_speed", "label": "Long pass (+80 football speed)"},
-	{"id": "max_health", "label": "Tougher player (+20 max health)"},
-	{"id": "movement_speed", "label": "Sprint training (+30 movement speed)"},
+	{"id": "football_damage", "label": "Power Run (+8 football damage)"},
+	{"id": "attack_cooldown", "label": "Quick Snap (fire 0.12s faster)"},
+	{"id": "projectile_speed", "label": "Long Bomb (+80 football speed)"},
+	{"id": "max_health", "label": "Goal Line Stand (+20 max health)"},
+	{"id": "movement_speed", "label": "Open Field Sprint (+30 movement speed)"},
 ]
 
 func _ready() -> void:
@@ -109,14 +109,14 @@ func _on_boss_defeated() -> void:
 		return
 	boss_reward_granted = true
 	boss_active = false
-	boss_status.text = "HALFTIME ELITE DEFEATED"
+	boss_status.text = "HALFTIME ELITE DEFEATED - BALL RECOVERED"
 	ProfileManager.add_currency(50)
 
 func _process(delta: float) -> void:
 	if get_tree().paused or not run_started or run_finished:
 		return
 	survival_time = minf(survival_time + delta, RUN_DURATION_SECONDS)
-	survival_label.text = "Survive: %s / %s" % [_format_time(survival_time), _format_time(RUN_DURATION_SECONDS)]
+	survival_label.text = "DRIVE CLOCK  %s / %s" % [_format_time(survival_time), _format_time(RUN_DURATION_SECONDS)]
 	var pressure := 1.0 + maxf(survival_time - ESCALATION_START_SECONDS, 0.0) / RUN_DURATION_SECONDS
 	enemy_spawner.set_pressure(pressure)
 	if not boss_event_triggered and survival_time >= HALFTIME_BOSS_SECONDS:
@@ -124,7 +124,7 @@ func _process(delta: float) -> void:
 	if boss_warning_remaining > 0.0:
 		boss_warning_remaining = maxf(boss_warning_remaining - delta, 0.0)
 		if boss_warning_remaining <= 0.0 and boss_active:
-			boss_status.text = "HALFTIME ELITE ACTIVE"
+			boss_status.text = "HALFTIME ELITE ACTIVE - PROTECT THE BALL"
 	if survival_time >= RUN_DURATION_SECONDS:
 		_finish_victory()
 
@@ -132,7 +132,7 @@ func _trigger_halftime_boss() -> void:
 	boss_event_triggered = true
 	boss_active = true
 	boss_warning_remaining = HALFTIME_WARNING_SECONDS
-	boss_status.text = "HALFTIME WARNING - ELITE ARRIVING"
+	boss_status.text = "HALFTIME WARNING - ELITE TAKING THE FIELD"
 	enemy_spawner.spawn_boss()
 
 func _format_time(seconds: float) -> String:
@@ -140,13 +140,13 @@ func _format_time(seconds: float) -> String:
 	return "%02d:%02d" % [whole_seconds / 60, whole_seconds % 60]
 
 func _on_player_health_changed(current_health: float, maximum_health: float) -> void:
-	health_label.text = "Health: %d / %d" % [current_health, maximum_health]
+	health_label.text = "QB Health: %d / %d" % [current_health, maximum_health]
 
 func _on_player_experience_changed(current_experience: int, experience_to_next_level: int, current_level: int) -> void:
-	experience_label.text = "Level %d  |  XP: %d / %d" % [current_level, current_experience, experience_to_next_level]
+	experience_label.text = "DRIVE XP  |  Level %d  |  %d / %d" % [current_level, current_experience, experience_to_next_level]
 
 func _on_player_level_up(new_level: int) -> void:
-	upgrade_title.text = "Level %d - Choose an upgrade" % new_level
+	upgrade_title.text = "HALFTIME HUDDLE - Call a play (Level %d)" % new_level
 	var options := _available_upgrade_options()
 	var start_index := (new_level - 1) % options.size()
 	for index in upgrade_buttons.size():
@@ -163,14 +163,14 @@ func _available_upgrade_options() -> Array[Dictionary]:
 			continue
 		options.append(option)
 	if player.tackle_unlocked:
-		options.append({"id": "tackle_damage", "label": "Tackle training (+10 burst damage)", "category": "weapon"})
-		options.append({"id": "tackle_cooldown", "label": "Fast tackle (-0.3s burst cooldown)", "category": "weapon"})
+		options.append({"id": "tackle_damage", "label": "Tackle Drill (+10 burst damage)", "category": "weapon"})
+		options.append({"id": "tackle_cooldown", "label": "Quick Tackle (-0.3s burst cooldown)", "category": "weapon"})
 	if player.hail_mary_unlocked:
-		options.append({"id": "hail_mary_damage", "label": "Hail Mary power (+20 shot damage)", "category": "weapon"})
-		options.append({"id": "hail_mary_cooldown", "label": "Quick release (-0.5s Hail Mary cooldown)", "category": "weapon"})
+		options.append({"id": "hail_mary_damage", "label": "Hail Mary Power (+20 shot damage)", "category": "weapon"})
+		options.append({"id": "hail_mary_cooldown", "label": "Quick Release (-0.5s Hail Mary cooldown)", "category": "weapon"})
 	if player.stiff_arm_unlocked:
-		options.append({"id": "stiff_arm_damage", "label": "Stronger stiff arm (+10 arc damage)", "category": "weapon"})
-		options.append({"id": "stiff_arm_cooldown", "label": "Fast hands (-0.25s stiff arm cooldown)", "category": "weapon"})
+		options.append({"id": "stiff_arm_damage", "label": "Stiff Arm Drill (+10 arc damage)", "category": "weapon"})
+		options.append({"id": "stiff_arm_cooldown", "label": "Fast Hands (-0.25s stiff arm cooldown)", "category": "weapon"})
 	return options
 
 func _on_upgrade_selected(button_index: int) -> void:
@@ -322,7 +322,7 @@ func _close_meta_upgrades() -> void:
 func _purchase_meta_upgrade(index: int) -> void:
 	var upgrade_id: String = ProfileManager.META_UPGRADES[index]["id"]
 	if ProfileManager.purchase_upgrade(upgrade_id):
-		meta_status.text = "Purchased. Applies on the next run.\nCoins: %d" % ProfileManager.currency()
+		meta_status.text = "Signed. Applies on the next kickoff.\nCoins: %d" % ProfileManager.currency()
 	else:
 		meta_status.text = "Cannot purchase: already owned or insufficient coins.\nCoins: %d" % ProfileManager.currency()
 	_refresh_meta_upgrades()

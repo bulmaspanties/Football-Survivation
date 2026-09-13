@@ -122,6 +122,56 @@ color = Color(0.04, 0.25, 0.13, 1)
 polygon = PackedVector2Array(470, -300, 560, -300, 560, 300, 470, 300)
 color = Color(0.04, 0.25, 0.13, 1)
 
+[node name="HomeSideline" type="Line2D" parent="Arena"]
+points = PackedVector2Array(-540, -286, 540, -286)
+width = 3.0
+default_color = Color(1, 0.82, 0.3, 0.9)
+
+[node name="AwaySideline" type="Line2D" parent="Arena"]
+points = PackedVector2Array(-540, 286, 540, 286)
+width = 3.0
+default_color = Color(1, 0.82, 0.3, 0.9)
+
+[node name="HomeGoalpost" type="Line2D" parent="Arena"]
+points = PackedVector2Array(-548, 0, -548, -42, -520, -42, -520, 0)
+width = 5.0
+default_color = Color(1, 0.86, 0.35, 1)
+
+[node name="AwayGoalpost" type="Line2D" parent="Arena"]
+points = PackedVector2Array(548, 0, 548, -42, 520, -42, 520, 0)
+width = 5.0
+default_color = Color(1, 0.86, 0.35, 1)
+
+[node name="HomeEndZoneLabel" type="Label" parent="Arena"]
+offset_left = -552.0
+offset_top = -22.0
+offset_right = -478.0
+offset_bottom = 22.0
+theme_override_colors/font_color = Color(1, 0.82, 0.35, 0.8)
+theme_override_font_sizes/font_size = 14
+text = "HOME\nGOAL"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AwayEndZoneLabel" type="Label" parent="Arena"]
+offset_left = 478.0
+offset_top = -22.0
+offset_right = 552.0
+offset_bottom = 22.0
+theme_override_colors/font_color = Color(1, 0.82, 0.35, 0.8)
+theme_override_font_sizes/font_size = 14
+text = "AWAY\nGOAL"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CrowdTop" type="Polygon2D" parent="Arena"]
+polygon = PackedVector2Array(-520, -326, -500, -340, -480, -326, -460, -340, -440, -326, -420, -340, -400, -326, -380, -340, -360, -326, -340, -340, -320, -326, -300, -340, -280, -326, -260, -340, -240, -326, -220, -340, -200, -326, -180, -340, -160, -326, -140, -340, -120, -326, -100, -340, -80, -326, -60, -340, -40, -326, -20, -340, 0, -326, 20, -340, 40, -326, 60, -340, 80, -326, 100, -340, 120, -326, 140, -340, 160, -326, 180, -340, 200, -326, 220, -340, 240, -326, 260, -340, 280, -326, 300, -340, 320, -326, 340, -340, 360, -326, 380, -340, 400, -326, 420, -340, 440, -326, 460, -340, 480, -326, 500, -340, 520, -326)
+color = Color(0.15, 0.19, 0.27, 0.9)
+
+[node name="CrowdBottom" type="Polygon2D" parent="Arena"]
+polygon = PackedVector2Array(-520, 326, -500, 340, -480, 326, -460, 340, -440, 326, -420, 340, -400, 326, -380, 340, -360, 326, -340, 340, -320, 326, -300, 340, -280, 326, -260, 340, -240, 326, -220, 340, -200, 326, -180, 340, -160, 326, -140, 340, -120, 326, -100, 340, -80, 326, -60, 340, -40, 326, -20, 340, 0, 326, 20, 340, 40, 326, 60, 340, 80, 326, 100, 340, 120, 326, 140, 340, 160, 326, 180, 340, 200, 326, 220, 340, 240, 326, 260, 340, 280, 326, 300, 340, 320, 326, 340, 340, 360, 326, 380, 340, 400, 326, 420, 340, 440, 326, 460, 340, 480, 326, 500, 340, 520, 326)
+color = Color(0.15, 0.19, 0.27, 0.9)
+
 [node name="YardLineLeft40" type="Line2D" parent="Arena"]
 points = PackedVector2Array(-376, -300, -376, 300)
 width = 2.0
@@ -225,7 +275,7 @@ offset_top = 10.0
 offset_right = 248.0
 offset_bottom = 54.0
 theme_override_colors/font_color = Color(0.82, 0.9, 0.96, 1)
-text = "MOVE  WASD / ARROWS\nSURVIVE  5:00"
+text = "MOVE  WASD / ARROWS\nDRIVE  5:00"
 vertical_alignment = 1
 
 [node name="HUD" type="CanvasLayer" parent="."]
@@ -246,7 +296,7 @@ offset_right = 476.0
 offset_bottom = 92.0
 theme_override_colors/font_color = Color(1, 0.86, 0.34, 1)
 theme_override_font_sizes/font_size = 32
-text = "FOOTBALL\nSURVIVATION"
+text = "FOOTBALL\nSUNDAY SURVIVAL"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -256,7 +306,7 @@ offset_top = 112.0
 offset_right = 456.0
 offset_bottom = 220.0
 theme_override_colors/font_color = Color(0.82, 0.92, 0.96, 1)
-text = "Survive for 5:00 on the field.\nMove with WASD or Arrow Keys.\nYour football fires automatically.\nCollect XP and choose upgrades."
+text = "Win the five-minute drive.\nMove with WASD or Arrow Keys.\nYour football fires automatically.\nCollect XP, call upgrades, beat halftime."
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -267,7 +317,7 @@ offset_right = 380.0
 offset_bottom = 334.0
 process_mode = 3
 theme_override_font_sizes/font_size = 22
-text = "START RUN"
+text = "KICK OFF"
 
 [node name="ProfilePanel" type="Panel" parent="HUD"]
 process_mode = 3
@@ -285,7 +335,7 @@ offset_right = 476.0
 offset_bottom = 58.0
 theme_override_colors/font_color = Color(1, 0.86, 0.34, 1)
 theme_override_font_sizes/font_size = 26
-text = "SELECT PROFILE"
+text = "SELECT FRANCHISE"
 horizontal_alignment = 1
 
 [node name="Slot1" type="Button" parent="HUD/ProfilePanel"]
@@ -328,7 +378,7 @@ offset_top = 398.0
 offset_right = 380.0
 offset_bottom = 438.0
 process_mode = 3
-text = "META UPGRADES"
+text = "FRONT OFFICE"
 
 [node name="HealthPanel" type="Panel" parent="HUD"]
 offset_left = 20.0
@@ -344,7 +394,7 @@ offset_top = 8.0
 offset_right = 188.0
 offset_bottom = 34.0
 theme_override_colors/font_color = Color(0.82, 0.96, 0.86, 1)
-text = "Health: 100 / 100"
+text = "QB Health: 100 / 100"
 vertical_alignment = 1
 
 [node name="SurvivalPanel" type="Panel" parent="HUD"]
@@ -361,7 +411,7 @@ offset_top = 8.0
 offset_right = 380.0
 offset_bottom = 34.0
 theme_override_colors/font_color = Color(0.95, 0.9, 0.55, 1)
-text = "Survive: 00:00 / 05:00"
+text = "DRIVE CLOCK  00:00 / 05:00"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -373,6 +423,16 @@ offset_bottom = 100.0
 theme_override_colors/font_color = Color(1, 0.75, 0.28, 1)
 horizontal_alignment = 1
 text = ""
+
+[node name="ScoreboardLabel" type="Label" parent="HUD"]
+offset_left = 420.0
+offset_top = 102.0
+offset_right = 732.0
+offset_bottom = 128.0
+theme_override_colors/font_color = Color(0.82, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "HOME  0   |   AWAY  0   |   1ST DOWN"
+horizontal_alignment = 1
 
 [node name="ExperiencePanel" type="Panel" parent="HUD"]
 offset_left = 20.0
@@ -388,7 +448,7 @@ offset_top = 8.0
 offset_right = 228.0
 offset_bottom = 34.0
 theme_override_colors/font_color = Color(0.7, 1, 0.75, 1)
-text = "Level 1  |  XP: 0 / 5"
+text = "DRIVE XP  |  Level 1  |  0 / 5"
 vertical_alignment = 1
 
 [node name="UpgradePanel" type="Panel" parent="HUD"]
@@ -407,7 +467,7 @@ offset_top = 20.0
 offset_right = 476.0
 offset_bottom = 56.0
 theme_override_colors/font_color = Color(0.82, 0.95, 1, 1)
-text = "Level up - Choose an upgrade"
+text = "HALFTIME HUDDLE - Call an upgrade"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -447,7 +507,7 @@ offset_top = 20.0
 offset_right = 360.0
 offset_bottom = 112.0
 theme_override_colors/font_color = Color(1, 0.86, 0.86, 1)
-text = "GAME OVER\nThe arena got you."
+text = "TURNOVER ON DOWNS\nThe defense won this drive."
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -482,7 +542,7 @@ offset_top = 24.0
 offset_right = 280.0
 offset_bottom = 82.0
 theme_override_colors/font_color = Color(0.82, 1, 0.86, 1)
-text = "VICTORY!\nYou survived the run."
+text = "TOUCHDOWN!\nYou won the full drive."
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -518,7 +578,7 @@ offset_right = 476.0
 offset_bottom = 58.0
 theme_override_colors/font_color = Color(1, 0.86, 0.34, 1)
 theme_override_font_sizes/font_size = 26
-text = "META UPGRADES"
+text = "FRONT OFFICE UPGRADES"
 horizontal_alignment = 1
 
 [node name="Status" type="Label" parent="HUD/MetaPanel"]
@@ -574,7 +634,7 @@ offset_right = 360.0
 offset_bottom = 58.0
 theme_override_colors/font_color = Color(0.82, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 28
-text = "GAME PAUSED"
+text = "SIDELINE PAUSE"
 horizontal_alignment = 1
 
 [node name="ResumeButton" type="Button" parent="HUD/PausePanel"]
@@ -583,7 +643,7 @@ offset_top = 76.0
 offset_right = 310.0
 offset_bottom = 116.0
 process_mode = 3
-text = "Resume"
+text = "Back to the Field"
 
 [node name="RestartButton" type="Button" parent="HUD/PausePanel"]
 offset_left = 70.0
@@ -591,7 +651,7 @@ offset_top = 126.0
 offset_right = 310.0
 offset_bottom = 166.0
 process_mode = 3
-text = "Restart Run"
+text = "Restart Drive"
 
 [node name="TitleButton" type="Button" parent="HUD/PausePanel"]
 offset_left = 70.0
@@ -599,7 +659,7 @@ offset_top = 176.0
 offset_right = 310.0
 offset_bottom = 216.0
 process_mode = 3
-text = "Return to Title"
+text = "Return to Kickoff"
 
 [node name="ProfileButton" type="Button" parent="HUD/PausePanel"]
 offset_left = 70.0
