@@ -4,7 +4,7 @@ Football Survivation is a Godot 4 project foundation for a top-down survival gam
 
 ## Project status
 
-The current foundation provides a playable arena, a reusable player scene, an automatic football weapon, and the first enemy loop: enemies spawn around the arena perimeter, pursue the player, and deal contact damage. Footballs automatically target nearby enemies and deal damage on impact. Player health is shown in the HUD and reaching zero displays a game-over state. Future gameplay can build on this structure with additional weapons and experience without changing the project entry point.
+The current foundation provides a playable arena, a reusable player scene, an automatic football weapon, and a progression loop: enemies spawn around the arena perimeter, pursue the player, deal contact damage, and drop collectible experience. Collected XP raises the player's level and pauses the game for an upgrade choice. Footballs automatically target nearby enemies and deal damage on impact. Player health is shown in the HUD and reaching zero displays a game-over state.
 
 ## Open and run
 
@@ -21,11 +21,13 @@ The current scene is a bounded placeholder arena with a player character and a f
 - `scenes/Player.tscn`: reusable player scene
 - `scenes/Enemy.tscn`: reusable pursuing enemy scene
 - `scenes/Football.tscn`: reusable football projectile scene
+- `scenes/ExperiencePickup.tscn`: reusable collectible XP scene
 - `scripts/player.gd`: player movement behavior
 - `scripts/enemy.gd`: enemy pursuit, health, and contact damage
 - `scripts/enemy_spawner.gd`: controlled perimeter spawning
 - `scripts/football.gd`: projectile movement, collision, and damage
 - `scripts/auto_weapon.gd`: automatic nearby-enemy targeting and firing
+- `scripts/experience_pickup.gd`: XP pickup collection
 - `scripts/main.gd`: HUD and game-over wiring
 
 ## Controls
@@ -40,6 +42,8 @@ Movement supports all eight directions and is normalized so diagonal movement is
 Enemies appear around the arena perimeter and damage the player on contact. Player health is displayed in the top-left HUD; the game-over panel appears when health reaches zero.
 
 The player automatically throws footballs at nearby enemies. No additional input is required; footballs disappear after hitting an enemy or reaching their lifetime.
+
+Enemies drop green experience pickups. Collect enough to level up, then choose one of three upgrades while gameplay is paused: football damage, attack cooldown, projectile speed, max health, or movement speed.
 
 ## Development notes
 

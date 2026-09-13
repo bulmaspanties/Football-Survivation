@@ -6,6 +6,8 @@ extends CharacterBody2D
 @export var contact_damage := 10.0
 @export var contact_range := 34.0
 @export var contact_cooldown := 0.8
+@export var experience_reward := 2
+@export var experience_scene: PackedScene
 
 var health := max_health
 var _contact_cooldown_remaining := 0.0
@@ -31,8 +33,19 @@ func _physics_process(delta: float) -> void:
 			_contact_cooldown_remaining = contact_cooldown
 
 func take_damage(amount: float) -> void:
-	if amount <= 0.0:
+	if amount <= 0.0 or health <= 0.0:
 		return
 	health = maxf(health - amount, 0.0)
 	if health <= 0.0:
+		_drop_experience()
 		queue_free()
+
+func _drop_experience() -> void:
+	if experience_scene == null or get_parent() == null:
+		return
+	var pickup := experience_scene.instantiate() as ExperiencePickup
+	if pickup == null:
+		return
+	pickup.amount = experience_reward
+	pickup.global_position = global_position
+	get_parent().add_child(pickup)

@@ -4,6 +4,8 @@ extends Node2D
 @export var projectile_scene: PackedScene
 @export var fire_interval := 0.8
 @export var target_range := 520.0
+@export var projectile_damage := 20.0
+@export var projectile_speed := 520.0
 
 var _fire_timer := 0.0
 var _player: Player
@@ -44,4 +46,15 @@ func _fire_at(target: Enemy) -> void:
 		return
 	get_tree().current_scene.add_child(football)
 	football.global_position = _player.global_position
+	football.damage = projectile_damage
+	football.speed = projectile_speed
 	football.launch(_player.global_position.direction_to(target.global_position))
+
+func upgrade_damage(amount: float) -> void:
+	projectile_damage += amount
+
+func upgrade_attack_speed(cooldown_reduction: float) -> void:
+	fire_interval = maxf(fire_interval - cooldown_reduction, 0.2)
+
+func upgrade_projectile_speed(amount: float) -> void:
+	projectile_speed += amount
