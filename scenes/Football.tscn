@@ -1,0 +1,20 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/football.gd" id="1_football"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_football"]
+radius = 7.0
+
+[node name="Football" type="Area2D"]
+collision_layer = 4
+collision_mask = 2
+monitoring = true
+monitorable = false
+script = ExtResource("1_football")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_football")
+
+[node name="Visual" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-9, -5, -3, -8, 5, -6, 9, 0, 5, 6, -3, 8, -9, 5, -11, 0)
+color = Color(0.95, 0.82, 0.44, 1)
