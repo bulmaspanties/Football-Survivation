@@ -6,6 +6,8 @@ extends CharacterBody2D
 @export var damage_cooldown := 0.45
 
 signal health_changed(current_health: float, maximum_health: float)
+signal damage_taken(amount: float)
+signal experience_collected(amount: int)
 signal experience_changed(current_experience: int, experience_to_next_level: int, level: int)
 signal level_up(level: int)
 signal died
@@ -19,6 +21,8 @@ var hail_mary_unlocked := false
 var stiff_arm_unlocked := false
 var _knockback_velocity := Vector2.ZERO
 var _damage_cooldown_remaining := 0.0
+var _feedback_remaining := 0.0
+@onready var _visual: CanvasItem = $Visual
 
 func _ready() -> void:
 	add_to_group("player")
@@ -27,6 +31,8 @@ func _ready() -> void:
 	experience_changed.emit(experience, experience_to_next_level, level)
 
 func _physics_process(delta: float) -> void:
+	_feedback_remaining = maxf(_feedback_remaining - delta, 0.0)
+	_visual.modulate = Color(1.0, 0.45, 0.45, 1.0) if _feedback_remaining > 0.0 else Color.WHITE
 	_damage_cooldown_remaining = maxf(_damage_cooldown_remaining - delta, 0.0)
 	var input_vector := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	_knockback_velocity = _knockback_velocity.move_toward(Vector2.ZERO, 900.0 * delta)
@@ -38,6 +44,8 @@ func take_damage(amount: float) -> void:
 		return
 	_damage_cooldown_remaining = damage_cooldown
 	health = maxf(health - amount, 0.0)
+	_feedback_remaining = 0.22
+	damage_taken.emit(amount)
 	health_changed.emit(health, max_health)
 	if health <= 0.0:
 		velocity = Vector2.ZERO
@@ -52,6 +60,7 @@ func collect_experience(amount: int) -> void:
 	if amount <= 0 or health <= 0.0:
 		return
 	experience += amount
+	experience_collected.emit(amount)
 	while experience >= experience_to_next_level:
 		experience -= experience_to_next_level
 		level += 1

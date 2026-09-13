@@ -27,4 +27,7 @@ func _physics_process(delta: float) -> void:
 func _on_body_entered(body: Node2D) -> void:
 	if body.is_in_group("enemy") and body.has_method("take_damage"):
 		body.take_damage(damage)
+		var main := get_tree().current_scene
+		if main != null and main.has_method("_on_weapon_hit"):
+			main._on_weapon_hit("Hail Mary")
 		queue_free()

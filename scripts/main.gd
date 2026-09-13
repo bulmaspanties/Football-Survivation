@@ -10,6 +10,7 @@ const HALFTIME_WARNING_SECONDS := 3.0
 @onready var experience_label: Label = $HUD/ExperiencePanel/ExperienceLabel
 @onready var survival_label: Label = $HUD/SurvivalPanel/SurvivalLabel
 @onready var boss_status: Label = $HUD/BossStatus
+@onready var wave_status: Label = $HUD/WaveStatus
 @onready var loadout_label: Label = $HUD/LoadoutPanel/LoadoutLabel
 @onready var upgrade_panel: Panel = $HUD/UpgradePanel
 @onready var upgrade_title: Label = $HUD/UpgradePanel/UpgradeTitle
@@ -51,6 +52,11 @@ var boss_event_triggered := false
 var boss_active := false
 var boss_warning_remaining := 0.0
 var boss_reward_granted := false
+var wave_banner_remaining := 0.0
+var enemies_defeated := 0
+var xp_earned := 0
+var damage_events := 0
+var weapon_hits: Dictionary = {}
 
 const UPGRADE_OPTIONS := [
 	{"id": "tackle_unlock", "label": "Unlock Tackle Burst (close-range damage)", "category": "weapon"},
@@ -65,9 +71,12 @@ const UPGRADE_OPTIONS := [
 
 func _ready() -> void:
 	player.health_changed.connect(_on_player_health_changed)
+	player.damage_taken.connect(_on_player_damage_taken)
+	player.experience_collected.connect(_on_player_experience_collected)
 	player.experience_changed.connect(_on_player_experience_changed)
 	player.level_up.connect(_on_player_level_up)
 	player.died.connect(_on_player_died)
+	enemy_spawner.phase_changed.connect(_on_wave_phase_changed)
 	$HUD/TitlePanel/StartButton.pressed.connect(_start_run)
 	$HUD/ProfilePanel/Slot1.pressed.connect(_select_profile.bind(0))
 	$HUD/ProfilePanel/Slot2.pressed.connect(_select_profile.bind(1))
@@ -106,6 +115,39 @@ func _ready() -> void:
 	enemy_spawner.set_process(false)
 	get_tree().paused = true
 
+func _on_wave_phase_changed(title: String, details: String) -> void:
+	if not run_started or run_finished:
+		return
+	wave_status.text = "%s\n%s" % [title, details]
+	wave_status.visible = true
+	wave_banner_remaining = 4.0
+
+func _on_enemy_defeated() -> void:
+	enemies_defeated += 1
+
+func _on_weapon_hit(weapon_name: String) -> void:
+	weapon_hits[weapon_name] = int(weapon_hits.get(weapon_name, 0)) + 1
+
+func _on_enemy_damaged(position: Vector2, amount: float) -> void:
+	damage_events += 1
+	var damage_label := Label.new()
+	damage_label.text = "-%d" % int(round(amount))
+	damage_label.position = position
+	damage_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.35, 1.0))
+	damage_label.add_theme_font_size_override("font_size", 16)
+	damage_label.z_index = 20
+	get_tree().current_scene.add_child(damage_label)
+	var tween := create_tween()
+	tween.tween_property(damage_label, "position", position + Vector2(0.0, -28.0), 0.45)
+	tween.parallel().tween_property(damage_label, "modulate:a", 0.0, 0.45)
+	tween.tween_callback(damage_label.queue_free)
+
+func _on_player_damage_taken(_amount: float) -> void:
+	boss_status.text = "CONTACT! Protect the pocket."
+
+func _on_player_experience_collected(amount: int) -> void:
+	xp_earned += amount
+
 func _on_boss_defeated() -> void:
 	if boss_reward_granted:
 		return
@@ -117,10 +159,14 @@ func _on_boss_defeated() -> void:
 func _process(delta: float) -> void:
 	if get_tree().paused or not run_started or run_finished:
 		return
+	if wave_banner_remaining > 0.0:
+		wave_banner_remaining = maxf(wave_banner_remaining - delta, 0.0)
+		if wave_banner_remaining <= 0.0:
+			wave_status.visible = false
 	survival_time = minf(survival_time + delta, RUN_DURATION_SECONDS)
 	survival_label.text = "DRIVE CLOCK  %s / %s" % [_format_time(survival_time), _format_time(RUN_DURATION_SECONDS)]
 	var pressure := 1.0 + maxf(survival_time - ESCALATION_START_SECONDS, 0.0) / RUN_DURATION_SECONDS
-	enemy_spawner.set_pressure(pressure)
+	enemy_spawner.update_director(survival_time, pressure)
 	if not boss_event_triggered and survival_time >= HALFTIME_BOSS_SECONDS:
 		_trigger_halftime_boss()
 	if boss_warning_remaining > 0.0:
@@ -281,12 +327,17 @@ func _start_run() -> void:
 	boss_warning_remaining = 0.0
 	boss_reward_granted = false
 	survival_time = 0.0
+	enemies_defeated = 0
+	xp_earned = 0
+	damage_events = 0
+	weapon_hits = {}
 	title_panel.visible = false
 	profile_panel.visible = false
 	ProfileManager.mark_played()
 	player.apply_profile_upgrades(ProfileManager.selected_unlocks())
 	enemy_spawner.reset_run()
 	boss_status.text = ""
+	wave_status.visible = false
 	player.set_physics_process(true)
 	auto_weapon.set_process(true)
 	tackle_weapon.set_process(player.tackle_unlocked)
@@ -317,7 +368,7 @@ func _on_player_died() -> void:
 	_grant_run_reward(false)
 	get_tree().paused = false
 	game_over_panel.visible = true
-	game_over_currency.text = "Profile reward: +%d coins\nTotal coins: %d" % [last_run_reward, ProfileManager.currency()]
+	game_over_currency.text = _terminal_summary("Profile reward: +%d coins\nTotal coins: %d" % [last_run_reward, ProfileManager.currency()])
 
 func _finish_victory() -> void:
 	run_finished = true
@@ -328,8 +379,24 @@ func _finish_victory() -> void:
 	settings_panel.visible = false
 	_grant_run_reward(true)
 	victory_panel.visible = true
-	victory_currency.text = "Profile reward: +%d coins\nTotal coins: %d" % [last_run_reward, ProfileManager.currency()]
+	victory_currency.text = _terminal_summary("Profile reward: +%d coins\nTotal coins: %d" % [last_run_reward, ProfileManager.currency()])
 	get_tree().paused = true
+
+func _terminal_summary(reward_text: String) -> String:
+	var summary := "%s\nDrive: %s  |  Defeated: %d\nXP earned: %d  |  Impact plays: %d" % [
+		reward_text,
+		_format_time(survival_time),
+		enemies_defeated,
+		xp_earned,
+		damage_events,
+	]
+	var hit_summary := "  ".join([
+		"Football %d" % int(weapon_hits.get("Football", 0)),
+		"Tackle %d" % int(weapon_hits.get("Tackle Burst", 0)),
+		"Hail Mary %d" % int(weapon_hits.get("Hail Mary", 0)),
+		"Stiff Arm %d" % int(weapon_hits.get("Stiff Arm", 0)),
+	])
+	return "%s\nWeapon hits: %s" % [summary, hit_summary]
 
 func _grant_run_reward(victory: bool) -> void:
 	if reward_granted:

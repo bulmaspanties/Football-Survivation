@@ -34,6 +34,7 @@ var _support_sources: Dictionary = {}
 var _support_base_speed := 0.0
 var _support_base_contact_damage := 0.0
 var _support_feedback_remaining := 0.0
+var _attack_warning_remaining := 0.0
 @onready var _visual: CanvasItem = $Visual
 
 func _ready() -> void:
@@ -51,8 +52,11 @@ func apply_pressure(multiplier: float) -> void:
 
 func _physics_process(delta: float) -> void:
 	_hit_flash_remaining = maxf(_hit_flash_remaining - delta, 0.0)
+	_attack_warning_remaining = maxf(_attack_warning_remaining - delta, 0.0)
 	if _hit_flash_remaining > 0.0:
 		_visual.modulate = Color(1.0, 0.72, 0.72, 1.0)
+	elif _attack_warning_remaining > 0.0:
+		_visual.modulate = Color(1.0, 0.75, 0.35, 1.0)
 	elif role == "support" and _support_feedback_remaining > 0.0:
 		_visual.modulate = Color(0.8, 1.0, 0.7, 1.0)
 	else:
@@ -61,6 +65,7 @@ func _physics_process(delta: float) -> void:
 	_ranged_cooldown_remaining = maxf(_ranged_cooldown_remaining - delta, 0.0)
 	_support_cooldown_remaining = maxf(_support_cooldown_remaining - delta, 0.0)
 	_support_feedback_remaining = maxf(_support_feedback_remaining - delta, 0.0)
+	queue_redraw()
 	_prune_support_sources()
 	if not is_instance_valid(_target):
 		_target = get_tree().get_first_node_in_group("player") as Player
@@ -76,12 +81,16 @@ func _physics_process(delta: float) -> void:
 		elif distance_to_target <= preferred_distance + 24.0:
 			direction = Vector2.ZERO
 		_throw_at_player()
+		if distance_to_target <= preferred_distance + 80.0 and _ranged_cooldown_remaining <= 0.35:
+			_attack_warning_remaining = 0.12
 	elif role == "support":
 		if distance_to_target < preferred_distance - 35.0:
 			direction = -direction
 		elif distance_to_target <= preferred_distance + 35.0:
 			direction = Vector2.ZERO
 		_support_nearby_enemies()
+		if _support_cooldown_remaining <= 0.35:
+			_attack_warning_remaining = 0.12
 	elif role == "boss":
 		if distance_to_target > 120.0:
 			direction = direction
@@ -90,6 +99,8 @@ func _physics_process(delta: float) -> void:
 	velocity = direction * speed
 	move_and_slide()
 	if global_position.distance_to(_target.global_position) <= contact_range:
+		if role == "blocker" or role == "boss":
+			_attack_warning_remaining = 0.12
 		if _contact_cooldown_remaining <= 0.0:
 			_target.take_damage(contact_damage)
 			if knockback_force > 0.0:
@@ -100,12 +111,16 @@ func take_damage(amount: float) -> void:
 	if amount <= 0.0 or health <= 0.0:
 		return
 	health = maxf(health - amount, 0.0)
+	var main := get_tree().current_scene
+	if main != null and main.has_method("_on_enemy_damaged"):
+		main._on_enemy_damaged(global_position, amount)
 	if health <= 0.0:
+		if main != null and main.has_method("_on_enemy_defeated"):
+			main._on_enemy_defeated()
 		_clear_support_buffs()
 		_drop_experience()
 		_spawn_death_burst()
 		if is_boss:
-			var main := get_tree().current_scene
 			if main != null and main.has_method("_on_boss_defeated"):
 				main._on_boss_defeated()
 		queue_free()
@@ -189,3 +204,9 @@ func _spawn_death_burst() -> void:
 	burst.global_position = global_position
 	get_parent().add_child(burst)
 	burst.setup(Color(1.0, 0.3, 0.22, 1.0))
+
+func _draw() -> void:
+	if _attack_warning_remaining <= 0.0:
+		return
+	var cue_radius := contact_range if role == "blocker" or role == "boss" else 28.0
+	draw_arc(Vector2.ZERO, cue_radius, 0.0, TAU, 24, Color(1.0, 0.68, 0.18, 0.8), 3.0)

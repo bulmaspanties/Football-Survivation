@@ -76,6 +76,10 @@ Enemies drop green experience pickups. Collect enough to level up, then call one
 
 Each run displays elapsed survival time and escalates enemy pressure after the opening period. Victory and game over both offer a restart button.
 
+The five-minute drive is paced by named wave phases: Kickoff (0:00-0:45), First Quarter (0:45-1:45), Second Quarter (1:45-2:30), Halftime Drive (2:30-3:30), Final Drive (3:30-4:30), and Red Zone (4:30-5:00). Each phase has its own role mix, spawn interval, and enemy cap; a banner announces phase changes. The one-time Elite still arrives at 2:30, and the director pauses safely with gameplay.
+
+Player damage briefly flashes the QB, nearby enemy attacks show short warning rings, and weapon hits create floating impact numbers. End-of-run panels include drive time, enemies defeated, XP collected, and total impact events in addition to the existing profile reward; these stats reset every kickoff and do not change currency rewards.
+
 At 2:30, a one-time halftime event announces and spawns an Elite outside the field boundary while normal spawns continue under their cap. The Elite is larger, slower, much tougher, deals bounded contact damage, and drops 25 XP. Defeating it grants the selected profile a one-time 50-coin bonus and updates the scoreboard-style HUD; the bonus cannot repeat from duplicate damage or terminal transitions. The run uses football terminology throughout: kickoff, drive clock, downs, halftime huddle, turnover, touchdown, and front-office upgrades.
 
 Starting or restarting a run creates a fresh player progression state and clears all active gameplay nodes before the timer begins.

@@ -30,6 +30,9 @@ func _process(delta: float) -> void:
 		if global_position.distance_to(enemy.global_position) <= radius:
 			enemy.take_damage(damage)
 			hit_count += 1
+			var main := get_tree().current_scene
+			if main != null and main.has_method("_on_weapon_hit"):
+				main._on_weapon_hit("Tackle Burst")
 	if hit_count > 0:
 		_cooldown_remaining = cooldown
 		_feedback_remaining = 0.18
