@@ -1,0 +1,15 @@
+# Godot 4 generated project data
+.godot/
+
+# Local editor and operating-system files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Temporary and log files
+*.tmp
+*.log
+
+# Local export configuration
+export.cfg
