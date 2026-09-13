@@ -4,7 +4,7 @@ Football Survivation is a Godot 4 project foundation for a top-down survival gam
 
 ## Project status
 
-The current foundation provides a playable arena, a reusable player scene, an automatic football weapon, and a progression loop: enemies spawn around the arena perimeter, pursue the player, deal contact damage, and drop collectible experience. Collected XP raises the player's level and pauses the game for an upgrade choice. Footballs automatically target nearby enemies and deal damage on impact. Player health is shown in the HUD and reaching zero displays a game-over state.
+The current foundation provides a playable arena, a reusable player scene, an automatic football weapon, and a structured five-minute survival run. Enemies spawn around the arena perimeter, pursue the player, deal contact damage, drop collectible experience, and become more numerous and dangerous over time. Collected XP raises the player's level and pauses the game for an upgrade choice. Footballs automatically target nearby enemies and deal damage on impact. Reach the five-minute target for victory; player health reaching zero remains a distinct game-over state.
 
 ## Open and run
 
@@ -44,6 +44,8 @@ Enemies appear around the arena perimeter and damage the player on contact. Play
 The player automatically throws footballs at nearby enemies. No additional input is required; footballs disappear after hitting an enemy or reaching their lifetime.
 
 Enemies drop green experience pickups. Collect enough to level up, then choose one of three upgrades while gameplay is paused: football damage, attack cooldown, projectile speed, max health, or movement speed.
+
+Each run displays elapsed survival time and escalates enemy pressure after the opening period. Victory and game over both offer a restart button.
 
 ## Development notes
 

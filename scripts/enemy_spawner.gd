@@ -8,6 +8,7 @@ extends Node2D
 @export var spawn_y := 270.0
 
 var _spawn_timer := 0.0
+var pressure := 1.0
 
 func _ready() -> void:
 	_spawn_timer = spawn_interval
@@ -28,8 +29,14 @@ func _spawn_enemy() -> void:
 	if enemy == null:
 		return
 	enemy.position = _perimeter_position()
+	enemy.apply_pressure(pressure)
 	enemy.add_to_group("enemy")
 	get_parent().add_child(enemy)
+
+func set_pressure(value: float) -> void:
+	pressure = maxf(value, 1.0)
+	spawn_interval = maxf(2.5 / pressure, 0.65)
+	max_enemies = 12 + int((pressure - 1.0) * 10.0)
 
 func _perimeter_position() -> Vector2:
 	var edge := randi() % 4

@@ -47,6 +47,18 @@ corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_victory"]
+bg_color = Color(0.05, 0.2, 0.12, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.35, 0.95, 0.55, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
 [node name="Main" type="Node2D"]
 script = ExtResource("4_main")
 
@@ -127,6 +139,24 @@ theme_override_colors/font_color = Color(0.82, 0.96, 0.86, 1)
 text = "Health: 100 / 100"
 vertical_alignment = 1
 
+[node name="SurvivalPanel" type="Panel" parent="HUD"]
+offset_left = 380.0
+offset_top = 20.0
+offset_right = 772.0
+offset_bottom = 62.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_info")
+
+[node name="SurvivalLabel" type="Label" parent="HUD/SurvivalPanel"]
+offset_left = 12.0
+offset_top = 8.0
+offset_right = 380.0
+offset_bottom = 34.0
+theme_override_colors/font_color = Color(0.95, 0.9, 0.55, 1)
+text = "Survive: 00:00 / 05:00"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="ExperiencePanel" type="Panel" parent="HUD"]
 offset_left = 20.0
 offset_top = 70.0
@@ -203,3 +233,39 @@ theme_override_colors/font_color = Color(1, 0.86, 0.86, 1)
 text = "GAME OVER\nThe arena got you."
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="RestartButton" type="Button" parent="HUD/GameOverPanel"]
+offset_left = 75.0
+offset_top = 88.0
+offset_right = 225.0
+offset_bottom = 124.0
+process_mode = 3
+text = "Restart Run"
+
+[node name="VictoryPanel" type="Panel" parent="HUD"]
+visible = false
+process_mode = 3
+offset_left = 426.0
+offset_top = 220.0
+offset_right = 726.0
+offset_bottom = 428.0
+mouse_filter = 1
+theme_override_styles/panel = SubResource("StyleBoxFlat_victory")
+
+[node name="Label" type="Label" parent="HUD/VictoryPanel"]
+offset_left = 20.0
+offset_top = 24.0
+offset_right = 280.0
+offset_bottom = 82.0
+theme_override_colors/font_color = Color(0.82, 1, 0.86, 1)
+text = "VICTORY!\nYou survived the run."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RestartButton" type="Button" parent="HUD/VictoryPanel"]
+offset_left = 75.0
+offset_top = 128.0
+offset_right = 225.0
+offset_bottom = 164.0
+process_mode = 3
+text = "Play Again"

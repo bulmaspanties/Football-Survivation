@@ -16,6 +16,12 @@ var _target: Player
 func _ready() -> void:
 	health = max_health
 
+func apply_pressure(multiplier: float) -> void:
+	speed *= multiplier
+	max_health *= multiplier
+	health = max_health
+	contact_damage *= multiplier
+
 func _physics_process(delta: float) -> void:
 	_contact_cooldown_remaining = maxf(_contact_cooldown_remaining - delta, 0.0)
 	if not is_instance_valid(_target):
