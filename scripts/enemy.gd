@@ -41,6 +41,21 @@ func _ready() -> void:
 	health = max_health
 	_support_base_speed = speed
 	_support_base_contact_damage = contact_damage
+	_update_palette_color()
+	SettingsManager.palette_changed.connect(_update_palette_color)
+
+func _update_palette_color() -> void:
+	if not is_instance_valid(_visual) or not (_visual is Panel):
+		return
+	var color_key := "enemy_boss" if is_boss else ("enemy_" + role)
+	var base_color: Color = SettingsManager.get_color(color_key)
+	var style_box = (_visual as Panel).get_theme_stylebox("panel")
+	if style_box is StyleBoxFlat:
+		var new_style: StyleBoxFlat = style_box.duplicate()
+		new_style.bg_color = base_color
+		if is_boss:
+			new_style.border_color = SettingsManager.get_color("enemy_boss_border", new_style.border_color)
+		(_visual as Panel).add_theme_stylebox_override("panel", new_style)
 
 func apply_pressure(multiplier: float) -> void:
 	speed *= multiplier

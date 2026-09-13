@@ -11,6 +11,18 @@ var _remaining_lifetime := 0.0
 func _ready() -> void:
 	_remaining_lifetime = lifetime
 	body_entered.connect(_on_body_entered)
+	_update_palette_color()
+	SettingsManager.palette_changed.connect(_update_palette_color)
+
+func _update_palette_color() -> void:
+	if has_node("Visual"):
+		var visual := $Visual as CanvasItem
+		if visual is Polygon2D:
+			(visual as Polygon2D).color = SettingsManager.get_color("enemy_projectile", Color(0.78, 0.2, 0.12, 1.0))
+	if has_node("Telegraph"):
+		var telegraph := $Telegraph as Line2D
+		if telegraph != null:
+			telegraph.default_color = SettingsManager.get_color("enemy_telegraph", Color(1.0, 0.5, 0.2, 0.8))
 
 func launch(aim_direction: Vector2) -> void:
 	if aim_direction.length_squared() > 0.0:

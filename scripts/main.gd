@@ -47,12 +47,23 @@ const HALFTIME_WARNING_SECONDS := 3.0
 	$HUD/CharacterPanel/CharacterButton3,
 ]
 @onready var title_character_button: Button = $HUD/TitlePanel/CharacterButton
+@onready var title_settings_button: Button = $HUD/TitlePanel/SettingsButton
 @onready var selected_character_label: Label = $HUD/TitlePanel/SelectedCharacterLabel
 @onready var pause_panel: Panel = $HUD/PausePanel
 @onready var settings_panel: Panel = $HUD/SettingsPanel
+@onready var settings_status: Label = $HUD/SettingsPanel/Status
 @onready var volume_slider: HSlider = $HUD/SettingsPanel/VolumeSlider
 @onready var mute_check: CheckButton = $HUD/SettingsPanel/MuteCheck
 @onready var fullscreen_check: CheckButton = $HUD/SettingsPanel/FullscreenCheck
+@onready var vibration_check: CheckButton = $HUD/SettingsPanel/VibrationCheck
+@onready var colorblind_check: CheckButton = $HUD/SettingsPanel/ColorblindCheck
+@onready var text_size_button: Button = $HUD/SettingsPanel/TextSizeButton
+@onready var rebind_up_button: Button = $HUD/SettingsPanel/RebindUpButton
+@onready var rebind_down_button: Button = $HUD/SettingsPanel/RebindDownButton
+@onready var rebind_left_button: Button = $HUD/SettingsPanel/RebindLeftButton
+@onready var rebind_right_button: Button = $HUD/SettingsPanel/RebindRightButton
+@onready var rebind_pause_button: Button = $HUD/SettingsPanel/RebindPauseButton
+@onready var reset_keys_button: Button = $HUD/SettingsPanel/ResetKeysButton
 @onready var auto_weapon: AutoWeapon = $Player/AutoWeapon
 @onready var tackle_weapon: TackleWeapon = $Player/TackleWeapon
 @onready var hail_mary_weapon: HailMaryWeapon = $Player/HailMaryWeapon
@@ -75,6 +86,9 @@ var xp_earned := 0
 var damage_events := 0
 var weapon_hits: Dictionary = {}
 var pro_difficulty_active := false
+var _listening_action := ""
+var _settings_opened_from_title := false
+var _base_font_sizes: Dictionary = {}
 
 const UPGRADE_OPTIONS := [
 	{"id": "tackle_unlock", "label": "Unlock Tackle Burst (close-range damage)", "category": "weapon"},
@@ -96,6 +110,7 @@ func _ready() -> void:
 	player.died.connect(_on_player_died)
 	enemy_spawner.phase_changed.connect(_on_wave_phase_changed)
 	$HUD/TitlePanel/StartButton.pressed.connect(_start_run)
+	title_settings_button.pressed.connect(_open_settings_from_title)
 	$HUD/ProfilePanel/Slot1.pressed.connect(_select_profile.bind(0))
 	$HUD/ProfilePanel/Slot2.pressed.connect(_select_profile.bind(1))
 	$HUD/ProfilePanel/Slot3.pressed.connect(_select_profile.bind(2))
@@ -114,13 +129,25 @@ func _ready() -> void:
 	$HUD/PausePanel/RestartButton.pressed.connect(_restart_run)
 	$HUD/PausePanel/TitleButton.pressed.connect(_return_to_title)
 	$HUD/PausePanel/ProfileButton.pressed.connect(_return_to_profiles)
-	$HUD/PausePanel/SettingsButton.pressed.connect(_open_settings)
+	$HUD/PausePanel/SettingsButton.pressed.connect(_open_settings_from_pause)
 	$HUD/SettingsPanel/BackButton.pressed.connect(_close_settings)
 	$HUD/SettingsPanel/ResetButton.pressed.connect(_reset_settings)
 	volume_slider.value_changed.connect(_on_volume_changed)
 	mute_check.toggled.connect(_on_mute_toggled)
 	fullscreen_check.toggled.connect(_on_fullscreen_toggled)
+	vibration_check.toggled.connect(_on_vibration_toggled)
+	colorblind_check.toggled.connect(_on_colorblind_toggled)
+	text_size_button.pressed.connect(_on_text_size_pressed)
+	rebind_up_button.pressed.connect(_start_rebind.bind("move_up"))
+	rebind_down_button.pressed.connect(_start_rebind.bind("move_down"))
+	rebind_left_button.pressed.connect(_start_rebind.bind("move_left"))
+	rebind_right_button.pressed.connect(_start_rebind.bind("move_right"))
+	rebind_pause_button.pressed.connect(_start_rebind.bind("pause_game"))
+	reset_keys_button.pressed.connect(_on_reset_keys_pressed)
+	SettingsManager.palette_changed.connect(_update_hud_palette)
 	SettingsManager.settings_changed.connect(_sync_settings_controls)
+	_init_font_scaling()
+	_update_hud_palette()
 	_sync_settings_controls()
 	_refresh_profile_buttons()
 	profile_panel.visible = ProfileManager.profile_selection_requested or ProfileManager.selected_slot < 0
@@ -147,6 +174,7 @@ func _ready() -> void:
 func _configure_focus() -> void:
 	_set_vertical_focus([
 		$HUD/TitlePanel/CharacterButton,
+		title_settings_button,
 		$HUD/TitlePanel/StartButton,
 	])
 	_set_vertical_focus([
@@ -166,12 +194,23 @@ func _configure_focus() -> void:
 		$HUD/PausePanel/ProfileButton,
 	])
 	_set_vertical_focus([
-		$HUD/SettingsPanel/VolumeSlider,
-		$HUD/SettingsPanel/MuteCheck,
-		$HUD/SettingsPanel/FullscreenCheck,
+		volume_slider,
+		mute_check,
+		fullscreen_check,
+		vibration_check,
+		colorblind_check,
+		text_size_button,
+		rebind_up_button,
+		rebind_down_button,
+		rebind_left_button,
+		rebind_right_button,
+		rebind_pause_button,
+		reset_keys_button,
 		$HUD/SettingsPanel/ResetButton,
 		$HUD/SettingsPanel/BackButton,
 	])
+	_set_vertical_focus([$HUD/GameOverPanel/RestartButton])
+	_set_vertical_focus([$HUD/VictoryPanel/RestartButton])
 	_set_vertical_focus([$HUD/GameOverPanel/RestartButton])
 	_set_vertical_focus([$HUD/VictoryPanel/RestartButton])
 
@@ -249,6 +288,7 @@ func _on_boss_defeated() -> void:
 	boss_active = false
 	boss_status.text = "HALFTIME ELITE DEFEATED - BALL RECOVERED"
 	ProfileManager.add_currency(50)
+	SettingsManager.rumble(0.6, 0.9, 0.5)
 
 func _process(delta: float) -> void:
 	if get_tree().paused or not run_started or run_finished:
@@ -276,6 +316,7 @@ func _trigger_halftime_boss() -> void:
 	boss_warning_remaining = HALFTIME_WARNING_SECONDS
 	boss_status.text = "HALFTIME WARNING - ELITE TAKING THE FIELD"
 	AudioManager.play_cue("boss_warning")
+	SettingsManager.rumble(0.4, 0.6, 0.4)
 	enemy_spawner.spawn_boss()
 
 func _format_time(seconds: float) -> String:
@@ -366,11 +407,54 @@ func _on_upgrade_selected(button_index: int) -> void:
 	upgrade_panel.visible = false
 	get_tree().paused = false
 
+func _unhandled_input(event: InputEvent) -> void:
+	if _listening_action.is_empty():
+		return
+	if event is InputEventKey and event.is_pressed() and not event.is_echo():
+		var keycode: Key = event.physical_keycode if event.physical_keycode != KEY_NONE else event.keycode
+		if keycode == KEY_ESCAPE:
+			_cancel_rebind()
+			get_viewport().set_input_as_handled()
+			return
+		var result: Dictionary = SettingsManager.rebind_key(_listening_action, keycode)
+		if bool(result.get("success", false)):
+			settings_status.text = "Bound %s to %s." % [SettingsManager.get_action_display_name(_listening_action), OS.get_keycode_string(keycode)]
+		else:
+			settings_status.text = str(result.get("error", "Failed to bind key."))
+		_listening_action = ""
+		_sync_settings_controls()
+		get_viewport().set_input_as_handled()
+
+func _init_font_scaling() -> void:
+	_collect_base_font_sizes($HUD)
+	SettingsManager.text_size_changed.connect(_apply_text_scale)
+	_apply_text_scale()
+
+func _collect_base_font_sizes(node: Node) -> void:
+	if node is Label or node is Button or node is CheckButton:
+		var current_size: int = (node as Control).get_theme_font_size("font_size")
+		if current_size <= 0:
+			current_size = 16
+		_base_font_sizes[node] = current_size
+	for child in node.get_children():
+		_collect_base_font_sizes(child)
+
+func _apply_text_scale() -> void:
+	var scale: float = SettingsManager.get_text_scale()
+	for node in _base_font_sizes:
+		if is_instance_valid(node):
+			var base_size: int = _base_font_sizes[node]
+			var new_size: int = maxi(int(round(base_size * scale)), 10)
+			(node as Control).add_theme_font_size_override("font_size", new_size)
+
 func _on_pause_requested() -> void:
 	if not run_started or run_finished or title_panel.visible or upgrade_panel.visible:
 		return
 	if settings_panel.visible:
-		_close_settings()
+		if not _listening_action.is_empty():
+			_cancel_rebind()
+		else:
+			_close_settings()
 	elif pause_panel.visible:
 		_resume_run()
 	else:
@@ -383,18 +467,76 @@ func _resume_run() -> void:
 	pause_panel.visible = false
 	get_tree().paused = false
 
-func _open_settings() -> void:
+func _open_settings_from_title() -> void:
+	_settings_opened_from_title = true
+	title_panel.visible = false
 	settings_panel.visible = true
+	_cancel_rebind()
+	settings_status.text = "Adjust audio, accessibility, or rebind keyboard controls."
+	_sync_settings_controls()
+	volume_slider.grab_focus()
+
+func _open_settings_from_pause() -> void:
+	_settings_opened_from_title = false
 	pause_panel.visible = false
+	settings_panel.visible = true
+	_cancel_rebind()
+	settings_status.text = "Adjust audio, accessibility, or rebind keyboard controls."
+	_sync_settings_controls()
 	volume_slider.grab_focus()
 
 func _close_settings() -> void:
+	_cancel_rebind()
 	settings_panel.visible = false
-	pause_panel.visible = true
-	$HUD/PausePanel/SettingsButton.grab_focus()
+	if _settings_opened_from_title:
+		title_panel.visible = true
+		title_settings_button.grab_focus()
+	else:
+		pause_panel.visible = true
+		$HUD/PausePanel/SettingsButton.grab_focus()
+
+func _start_rebind(action_name: String) -> void:
+	_listening_action = action_name
+	settings_status.text = "Press any key for %s (or Esc to cancel)..." % SettingsManager.get_action_display_name(action_name)
+	_sync_settings_controls()
+
+func _cancel_rebind() -> void:
+	if not _listening_action.is_empty():
+		_listening_action = ""
+		settings_status.text = "Key rebinding cancelled."
+		_sync_settings_controls()
+
+func _on_reset_keys_pressed() -> void:
+	_cancel_rebind()
+	SettingsManager.reset_key_bindings()
+	settings_status.text = "Keyboard bindings reset to default WASD / Arrows."
+	_sync_settings_controls()
+
+func _on_vibration_toggled(pressed: bool) -> void:
+	SettingsManager.set_vibration_enabled(pressed)
+	if pressed:
+		SettingsManager.rumble(0.3, 0.5, 0.15)
+	settings_status.text = "Controller rumble %s." % ("enabled" if pressed else "disabled")
+
+func _on_colorblind_toggled(pressed: bool) -> void:
+	SettingsManager.set_colorblind_mode(pressed)
+	settings_status.text = "Colorblind high-contrast palette %s." % ("enabled" if pressed else "disabled")
+
+func _on_text_size_pressed() -> void:
+	SettingsManager.cycle_text_size()
+	settings_status.text = "Text size set to %s." % SettingsManager.get_text_size_name()
+	_sync_settings_controls()
+
+func _update_hud_palette() -> void:
+	if is_instance_valid(health_label):
+		health_label.add_theme_color_override("font_color", SettingsManager.get_color("hud_health", Color(0.82, 0.96, 0.86, 1.0)))
+	if is_instance_valid(experience_label):
+		experience_label.add_theme_color_override("font_color", SettingsManager.get_color("hud_xp", Color(0.7, 1.0, 0.75, 1.0)))
 
 func _reset_settings() -> void:
+	_cancel_rebind()
 	SettingsManager.reset_defaults()
+	settings_status.text = "All settings reset to defaults."
 	_sync_settings_controls()
 	volume_slider.grab_focus()
 
@@ -408,9 +550,20 @@ func _on_fullscreen_toggled(value: bool) -> void:
 	SettingsManager.set_fullscreen(value)
 
 func _sync_settings_controls() -> void:
+	if not is_instance_valid(volume_slider):
+		return
 	volume_slider.set_value_no_signal(SettingsManager.master_volume)
 	mute_check.set_pressed_no_signal(SettingsManager.muted)
 	fullscreen_check.set_pressed_no_signal(SettingsManager.fullscreen)
+	vibration_check.set_pressed_no_signal(SettingsManager.vibration_enabled)
+	colorblind_check.set_pressed_no_signal(SettingsManager.colorblind_mode)
+	text_size_button.text = "Text Size: %s [Change]" % SettingsManager.get_text_size_name()
+
+	rebind_up_button.text = "Move Up: [ %s ]" % ("Press key..." if _listening_action == "move_up" else SettingsManager.get_key_label("move_up"))
+	rebind_down_button.text = "Move Down: [ %s ]" % ("Press key..." if _listening_action == "move_down" else SettingsManager.get_key_label("move_down"))
+	rebind_left_button.text = "Move Left: [ %s ]" % ("Press key..." if _listening_action == "move_left" else SettingsManager.get_key_label("move_left"))
+	rebind_right_button.text = "Move Right: [ %s ]" % ("Press key..." if _listening_action == "move_right" else SettingsManager.get_key_label("move_right"))
+	rebind_pause_button.text = "Pause: [ %s ]" % ("Press key..." if _listening_action == "pause_game" else SettingsManager.get_key_label("pause_game"))
 
 func _start_run() -> void:
 	if run_started:
@@ -505,6 +658,7 @@ func _finish_victory() -> void:
 	get_tree().paused = true
 	$HUD/VictoryPanel/RestartButton.grab_focus()
 	AudioManager.play_cue("victory")
+	SettingsManager.rumble(0.5, 0.8, 0.45)
 
 func _terminal_summary(reward_text: String) -> String:
 	var summary := "%s\nDrive: %s  |  Defeated: %d\nXP earned: %d  |  Impact plays: %d" % [

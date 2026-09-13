@@ -20,6 +20,7 @@ var tackle_unlocked := false
 var hail_mary_unlocked := false
 var stiff_arm_unlocked := false
 var xp_multiplier := 1.0
+var _character_data: Dictionary = {}
 var _knockback_velocity := Vector2.ZERO
 var _damage_cooldown_remaining := 0.0
 var _feedback_remaining := 0.0
@@ -31,6 +32,7 @@ func _ready() -> void:
 	health = max_health
 	health_changed.emit(health, max_health)
 	experience_changed.emit(experience, experience_to_next_level, level)
+	SettingsManager.palette_changed.connect(_update_character_visual)
 
 func _physics_process(delta: float) -> void:
 	_feedback_remaining = maxf(_feedback_remaining - delta, 0.0)
@@ -47,11 +49,13 @@ func take_damage(amount: float) -> void:
 	_damage_cooldown_remaining = damage_cooldown
 	health = maxf(health - amount, 0.0)
 	_feedback_remaining = 0.22
+	SettingsManager.rumble(0.4, 0.7, 0.2)
 	damage_taken.emit(amount)
 	health_changed.emit(health, max_health)
 	if health <= 0.0:
 		velocity = Vector2.ZERO
 		set_physics_process(false)
+		SettingsManager.rumble(0.5, 0.7, 0.35)
 		died.emit()
 
 func apply_knockback(force: Vector2) -> void:
@@ -144,6 +148,7 @@ func apply_profile_upgrades(unlocks: Array) -> void:
 func apply_character(character: Dictionary) -> void:
 	if character.is_empty():
 		return
+	_character_data = character
 	max_health += float(character.get("health_bonus", 0.0))
 	max_health = maxf(max_health, 10.0)
 	health = max_health
@@ -158,9 +163,16 @@ func apply_character(character: Dictionary) -> void:
 	if stiff_arm_bonus != 0.0:
 		($StiffArm as StiffArm).upgrade_damage(stiff_arm_bonus)
 	health_changed.emit(health, max_health)
-	if character.has("color") and _visual is Panel:
+	_update_character_visual()
+
+func _update_character_visual() -> void:
+	if _character_data.is_empty():
+		return
+	if _visual is Panel:
 		var style: StyleBoxFlat = (_visual as Panel).get_theme_stylebox("panel").duplicate()
-		style.bg_color = character["color"]
+		var char_id: String = str(_character_data.get("id", "quarterback"))
+		var default_col: Color = _character_data.get("color", Color.WHITE) as Color
+		style.bg_color = SettingsManager.get_character_color(char_id, default_col)
 		(_visual as Panel).add_theme_stylebox_override("panel", style)
 	if is_instance_valid(_role_label):
-		_role_label.text = str(character.get("tag", ""))
+		_role_label.text = str(_character_data.get("tag", ""))

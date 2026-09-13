@@ -36,6 +36,7 @@ func _process(delta: float) -> void:
 	if hit_count > 0:
 		_cooldown_remaining = cooldown
 		_feedback_remaining = 0.18
+		SettingsManager.rumble(0.35, 0.5, 0.18)
 		AudioManager.play_cue("tackle_burst")
 
 func unlock() -> void:

@@ -50,15 +50,41 @@ The command should exit successfully only when the project and its scripts/scene
 
 ## Controls
 
-- **W / Up Arrow**: move up
-- **S / Down Arrow**: move down
-- **A / Left Arrow**: move left
-- **D / Right Arrow**: move right
-- **Escape / P**: pause or resume during an active run
+- **W / Up Arrow**: move up (default, rebindable)
+- **S / Down Arrow**: move down (default, rebindable)
+- **A / Left Arrow**: move left (default, rebindable)
+- **D / Right Arrow**: move right (default, rebindable)
+- **Escape / P**: pause or resume during an active run (default, rebindable)
 
-Controller support uses the left stick for movement, with the same 0.2 deadzone and normalized eight-direction movement. The controller Menu/Start button pauses or resumes an active run; A/Cross accepts focused controls and B/Circle cancels or backs out. Standard menu navigation uses the directional pad/stick; Enter/Space remain keyboard activation, and focus begins on the first available action for each title, profile, front-office, pause/settings, level-up, victory, and game-over overlay. The active field shows a compact controls hint briefly at kickoff and the start of each run, then fades so it does not cover the HUD.
+### Key remapping
 
-The pause menu provides Resume, Restart Run, Return to Title, Profile Selection, and Settings controls. Escape/P only pauses an active run; level-up, title, victory, and game-over overlays keep their existing behavior. Settings include a session-persistent master volume slider, mute toggle, fullscreen/windowed toggle, and reset button. Settings remain active while navigating or restarting within the current Godot session.
+From the Settings & Accessibility menu (accessible from the title screen or the in-game pause menu), select any movement or pause action to bind a new keyboard key. The menu validates against conflicting keys (preventing the same key from being assigned to multiple actions) and invalid keys, allows canceling with Escape, and offers a dedicated "Reset Default Keys" button to restore standard WASD + Arrow bindings. Keybindings persist during the session in `SettingsManager` and preserve all controller inputs.
+
+### Controller & rumble support
+
+Controller support uses the left stick or D-pad for movement, with deadzone and normalized eight-direction movement preserved. The controller Menu/Start button pauses or resumes an active run; A/Cross accepts focused controls and B/Circle cancels or backs out.
+
+A controller vibration / rumble toggle in Settings controls tactile haptic feedback. When enabled, rumble is safely dispatched for:
+- Player damage taken and turnover defeat
+- Weapon impacts (Football, Tackle Burst, Hail Mary, and Stiff Arm hits)
+- Halftime Elite arrival warning and defeat
+- Touchdown victory celebration
+
+The rumble helper is guarded so platforms or controllers without vibration support do not error.
+
+## Settings & accessibility
+
+Accessible from both the title screen ("Settings & Accessibility") and the sideline pause menu ("Settings"), the settings panel provides:
+
+- **Master volume & mute**: slider (0% to 100%) and instant mute toggle routing through Godot's `Master` audio bus.
+- **Display mode**: fullscreen and windowed toggle.
+- **Controller vibration**: toggle for all gameplay rumble and haptic cues.
+- **Colorblind palette**: toggle for a high-contrast, colorblind-friendly theme that recolors the player roles, all five enemy archetypes and the halftime Elite, XP gems, enemy projectiles, telegraphs, and HUD labels without relying on red/green distinction alone.
+- **Text size scaling**: Small, Normal, and Large font-size options that scale HUD labels, buttons, and all overlays cleanly without clipping or breaking the layout.
+- **Keyboard remapping**: per-action key rebinds for movement and pause with live validation and reset.
+- **Reset all settings**: restores audio, display, haptics, colorblind palette, text size, and keybindings to factory defaults.
+
+Settings persist across runs and screens for the duration of the session and remain completely decoupled from profile save slots.
 
 ## Audio
 

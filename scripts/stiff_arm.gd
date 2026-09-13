@@ -36,6 +36,7 @@ func _process(delta: float) -> void:
 	if hit_count > 0:
 		_cooldown_remaining = cooldown
 		_feedback_remaining = 0.2
+		SettingsManager.rumble(0.3, 0.45, 0.14)
 		AudioManager.play_cue("stiff_arm")
 
 func unlock() -> void:
