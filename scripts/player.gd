@@ -14,6 +14,7 @@ var health := max_health
 var experience := 0
 var level := 1
 var experience_to_next_level := 5
+var tackle_unlocked := false
 var _damage_cooldown_remaining := 0.0
 
 func _ready() -> void:
@@ -52,6 +53,7 @@ func collect_experience(amount: int) -> void:
 
 func apply_upgrade(upgrade_id: String) -> void:
 	var weapon := $AutoWeapon as AutoWeapon
+	var tackle := $TackleWeapon as TackleWeapon
 	match upgrade_id:
 		"football_damage":
 			weapon.upgrade_damage(8.0)
@@ -65,3 +67,13 @@ func apply_upgrade(upgrade_id: String) -> void:
 			health_changed.emit(health, max_health)
 		"movement_speed":
 			speed += 30.0
+		"tackle_unlock":
+			if not tackle_unlocked:
+				tackle_unlocked = true
+				tackle.unlock()
+		"tackle_damage":
+			if tackle_unlocked:
+				tackle.upgrade_damage(10.0)
+		"tackle_cooldown":
+			if tackle_unlocked:
+				tackle.upgrade_cooldown(0.3)

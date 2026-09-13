@@ -19,12 +19,14 @@ const ESCALATION_START_SECONDS := 30.0
 @onready var enemy_spawner: EnemySpawner = $EnemySpawner
 @onready var title_panel: Panel = $HUD/TitlePanel
 @onready var auto_weapon: AutoWeapon = $Player/AutoWeapon
+@onready var tackle_weapon: TackleWeapon = $Player/TackleWeapon
 
 var survival_time := 0.0
 var run_finished := false
 var run_started := false
 
 const UPGRADE_OPTIONS := [
+	{"id": "tackle_unlock", "label": "Unlock Tackle Burst (close-range damage)", "category": "weapon"},
 	{"id": "football_damage", "label": "Powerful kicks (+8 football damage)"},
 	{"id": "attack_cooldown", "label": "Quick feet (fire 0.12s faster)"},
 	{"id": "projectile_speed", "label": "Long pass (+80 football speed)"},
@@ -44,6 +46,7 @@ func _ready() -> void:
 		upgrade_buttons[index].pressed.connect(_on_upgrade_selected.bind(index))
 	player.set_physics_process(false)
 	auto_weapon.set_process(false)
+	tackle_weapon.set_process(false)
 	enemy_spawner.set_process(false)
 	get_tree().paused = true
 
@@ -69,13 +72,25 @@ func _on_player_experience_changed(current_experience: int, experience_to_next_l
 
 func _on_player_level_up(new_level: int) -> void:
 	upgrade_title.text = "Level %d - Choose an upgrade" % new_level
-	var start_index := (new_level - 1) % UPGRADE_OPTIONS.size()
+	var options := _available_upgrade_options()
+	var start_index := (new_level - 1) % options.size()
 	for index in upgrade_buttons.size():
-		var option: Dictionary = UPGRADE_OPTIONS[(start_index + index) % UPGRADE_OPTIONS.size()]
+		var option: Dictionary = options[(start_index + index) % options.size()]
 		upgrade_buttons[index].text = option["label"]
 		upgrade_buttons[index].set_meta("upgrade_id", option["id"])
 	upgrade_panel.visible = true
 	get_tree().paused = true
+
+func _available_upgrade_options() -> Array[Dictionary]:
+	var options: Array[Dictionary] = []
+	for option in UPGRADE_OPTIONS:
+		if option["id"] == "tackle_unlock" and player.tackle_unlocked:
+			continue
+		options.append(option)
+	if player.tackle_unlocked:
+		options.append({"id": "tackle_damage", "label": "Tackle training (+10 burst damage)", "category": "weapon"})
+		options.append({"id": "tackle_cooldown", "label": "Fast tackle (-0.3s burst cooldown)", "category": "weapon"})
+	return options
 
 func _on_upgrade_selected(button_index: int) -> void:
 	var upgrade_id: String = upgrade_buttons[button_index].get_meta("upgrade_id", "")
@@ -95,6 +110,7 @@ func _start_run() -> void:
 	enemy_spawner.reset_run()
 	player.set_physics_process(true)
 	auto_weapon.set_process(true)
+	tackle_weapon.set_process(player.tackle_unlocked)
 	enemy_spawner.set_process(true)
 	get_tree().paused = false
 

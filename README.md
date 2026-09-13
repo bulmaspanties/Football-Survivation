@@ -54,7 +54,7 @@ Movement supports all eight directions and is normalized so diagonal movement is
 
 Defenders appear around the arena perimeter and damage the player on contact. Fast runners begin joining the waves as survival pressure rises; they move faster but have lower health and contact damage. Player health is displayed in the top-left HUD; the game-over panel appears when health reaches zero.
 
-The player automatically throws footballs at nearby enemies. No additional input is required; footballs disappear after hitting an enemy or reaching their lifetime.
+The player automatically throws footballs at nearby enemies. After choosing the one-time **Unlock Tackle Burst** upgrade, a close-range tackle burst automatically damages all nearby enemies on its cooldown and shows a brief radius flash. Further level-ups offer tackle damage/cooldown upgrades alongside football and player stat choices. No additional input is required; footballs disappear after hitting an enemy or reaching their lifetime.
 
 Enemies drop green experience pickups. Collect enough to level up, then choose one of three upgrades while gameplay is paused: football damage, attack cooldown, projectile speed, max health, or movement speed.
 
