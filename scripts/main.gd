@@ -17,9 +17,12 @@ const ESCALATION_START_SECONDS := 30.0
 @onready var game_over_panel: Panel = $HUD/GameOverPanel
 @onready var victory_panel: Panel = $HUD/VictoryPanel
 @onready var enemy_spawner: EnemySpawner = $EnemySpawner
+@onready var title_panel: Panel = $HUD/TitlePanel
+@onready var auto_weapon: AutoWeapon = $Player/AutoWeapon
 
 var survival_time := 0.0
 var run_finished := false
+var run_started := false
 
 const UPGRADE_OPTIONS := [
 	{"id": "football_damage", "label": "Powerful kicks (+8 football damage)"},
@@ -34,13 +37,18 @@ func _ready() -> void:
 	player.experience_changed.connect(_on_player_experience_changed)
 	player.level_up.connect(_on_player_level_up)
 	player.died.connect(_on_player_died)
+	$HUD/TitlePanel/StartButton.pressed.connect(_start_run)
 	$HUD/GameOverPanel/RestartButton.pressed.connect(_restart_run)
 	$HUD/VictoryPanel/RestartButton.pressed.connect(_restart_run)
 	for index in upgrade_buttons.size():
 		upgrade_buttons[index].pressed.connect(_on_upgrade_selected.bind(index))
+	player.set_physics_process(false)
+	auto_weapon.set_process(false)
+	enemy_spawner.set_process(false)
+	get_tree().paused = true
 
 func _process(delta: float) -> void:
-	if run_finished:
+	if not run_started or run_finished:
 		return
 	survival_time = minf(survival_time + delta, RUN_DURATION_SECONDS)
 	survival_label.text = "Survive: %s / %s" % [_format_time(survival_time), _format_time(RUN_DURATION_SECONDS)]
@@ -75,6 +83,19 @@ func _on_upgrade_selected(button_index: int) -> void:
 		return
 	player.apply_upgrade(upgrade_id)
 	upgrade_panel.visible = false
+	get_tree().paused = false
+
+func _start_run() -> void:
+	if run_started:
+		return
+	run_started = true
+	run_finished = false
+	survival_time = 0.0
+	title_panel.visible = false
+	enemy_spawner.reset_run()
+	player.set_physics_process(true)
+	auto_weapon.set_process(true)
+	enemy_spawner.set_process(true)
 	get_tree().paused = false
 
 func _on_player_died() -> void:

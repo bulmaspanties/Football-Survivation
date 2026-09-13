@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://scenes/Enemy.tscn" id="2_enemy"]
@@ -59,6 +59,18 @@ corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_title"]
+bg_color = Color(0.03, 0.08, 0.12, 0.98)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.95, 0.78, 0.28, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
 
 [node name="Main" type="Node2D"]
 script = ExtResource("4_main")
@@ -180,6 +192,45 @@ text = "MOVE  WASD / ARROWS\nSURVIVE  5:00"
 vertical_alignment = 1
 
 [node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="TitlePanel" type="Panel" parent="HUD"]
+process_mode = 3
+offset_left = 326.0
+offset_top = 130.0
+offset_right = 826.0
+offset_bottom = 518.0
+mouse_filter = 1
+theme_override_styles/panel = SubResource("StyleBoxFlat_title")
+
+[node name="Title" type="Label" parent="HUD/TitlePanel"]
+offset_left = 24.0
+offset_top = 30.0
+offset_right = 476.0
+offset_bottom = 92.0
+theme_override_colors/font_color = Color(1, 0.86, 0.34, 1)
+theme_override_font_sizes/font_size = 32
+text = "FOOTBALL\nSURVIVATION"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Description" type="Label" parent="HUD/TitlePanel"]
+offset_left = 44.0
+offset_top = 112.0
+offset_right = 456.0
+offset_bottom = 220.0
+theme_override_colors/font_color = Color(0.82, 0.92, 0.96, 1)
+text = "Survive for 5:00 on the field.\nMove with WASD or Arrow Keys.\nYour football fires automatically.\nCollect XP and choose upgrades."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StartButton" type="Button" parent="HUD/TitlePanel"]
+offset_left = 120.0
+offset_top = 274.0
+offset_right = 380.0
+offset_bottom = 334.0
+process_mode = 3
+theme_override_font_sizes/font_size = 22
+text = "START RUN"
 
 [node name="HealthPanel" type="Panel" parent="HUD"]
 offset_left = 20.0

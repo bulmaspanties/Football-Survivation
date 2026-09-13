@@ -12,7 +12,7 @@ The current foundation provides a playable arena, a reusable player scene, an au
 2. Import this repository in the Godot Project Manager, or open the repository folder from Godot.
 3. Press **F6** to run the current scene or **F5** to run the project. The project starts in `scenes/Main.tscn`.
 
-The current scene is a football-field arena with green turf, end zones, yard lines, midfield markings, a bright boundary, a player character, and a following camera. It uses only built-in Godot nodes, drawing primitives, and shapes, so no asset setup is required. Players, opponents, pickups, and footballs use distinct placeholder colors and silhouettes; enemy hits flash and defeated enemies emit a brief burst.
+The project opens on a built-in title screen with a Start Run button and a short controls/objective guide. After starting, the scene is a football-field arena with green turf, end zones, yard lines, midfield markings, a bright boundary, a player character, and a following camera. It uses only built-in Godot nodes, drawing primitives, and shapes, so no asset setup is required. Players, opponents, pickups, and footballs use distinct placeholder colors and silhouettes; enemy hits flash and defeated enemies emit a brief burst.
 
 ## Project structure
 
@@ -47,6 +47,8 @@ The player automatically throws footballs at nearby enemies. No additional input
 Enemies drop green experience pickups. Collect enough to level up, then choose one of three upgrades while gameplay is paused: football damage, attack cooldown, projectile speed, max health, or movement speed.
 
 Each run displays elapsed survival time and escalates enemy pressure after the opening period. Victory and game over both offer a restart button.
+
+Starting or restarting a run creates a fresh player progression state and clears all active gameplay nodes before the timer begins.
 
 ## Development notes
 

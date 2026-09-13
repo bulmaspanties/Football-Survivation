@@ -14,6 +14,12 @@ var _spawn_timer := 0.0
 var pressure := 1.0
 
 func _ready() -> void:
+	reset_run()
+
+func reset_run() -> void:
+	pressure = 1.0
+	spawn_interval = 2.5
+	max_enemies = 12
 	_spawn_timer = spawn_interval
 
 func _process(delta: float) -> void:
