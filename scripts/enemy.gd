@@ -36,6 +36,27 @@ var _support_base_contact_damage := 0.0
 var _support_feedback_remaining := 0.0
 var _attack_warning_remaining := 0.0
 @onready var _visual: CanvasItem = $Visual
+@onready var _animated_sprite: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
+
+func has_sprite_art() -> bool:
+	if not is_instance_valid(_animated_sprite) or _animated_sprite.sprite_frames == null:
+		return false
+	var frames := _animated_sprite.sprite_frames
+	for anim_name in ["idle", "run", "hit", "death"]:
+		if frames.has_animation(anim_name) and frames.get_frame_count(anim_name) > 0:
+			return true
+	return false
+
+func _sync_visual_mode() -> void:
+	var use_sprite := has_sprite_art()
+	if is_instance_valid(_animated_sprite):
+		_animated_sprite.visible = use_sprite
+	if is_instance_valid(_visual):
+		_visual.visible = not use_sprite
+	for child_name in ["Helmet", "Crown", "Label", "Visor", "SpeedMark", "Arm", "Shield", "Whistle"]:
+		var child_node := get_node_or_null(child_name)
+		if is_instance_valid(child_node) and child_node is CanvasItem:
+			(child_node as CanvasItem).visible = not use_sprite
 
 func _ready() -> void:
 	health = max_health
@@ -43,6 +64,7 @@ func _ready() -> void:
 	_support_base_contact_damage = contact_damage
 	_update_palette_color()
 	SettingsManager.palette_changed.connect(_update_palette_color)
+	_sync_visual_mode()
 
 func _update_palette_color() -> void:
 	if not is_instance_valid(_visual) or not (_visual is Panel):
@@ -68,14 +90,27 @@ func apply_pressure(multiplier: float) -> void:
 func _physics_process(delta: float) -> void:
 	_hit_flash_remaining = maxf(_hit_flash_remaining - delta, 0.0)
 	_attack_warning_remaining = maxf(_attack_warning_remaining - delta, 0.0)
-	if _hit_flash_remaining > 0.0:
-		_visual.modulate = Color(1.0, 0.72, 0.72, 1.0)
-	elif _attack_warning_remaining > 0.0:
-		_visual.modulate = Color(1.0, 0.75, 0.35, 1.0)
-	elif role == "support" and _support_feedback_remaining > 0.0:
-		_visual.modulate = Color(0.8, 1.0, 0.7, 1.0)
-	else:
-		_visual.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	var active_visual: CanvasItem = _animated_sprite if has_sprite_art() else _visual
+	if is_instance_valid(active_visual):
+		if _hit_flash_remaining > 0.0:
+			active_visual.modulate = Color(1.0, 0.72, 0.72, 1.0)
+		elif _attack_warning_remaining > 0.0:
+			active_visual.modulate = Color(1.0, 0.75, 0.35, 1.0)
+		elif role == "support" and _support_feedback_remaining > 0.0:
+			active_visual.modulate = Color(0.8, 1.0, 0.7, 1.0)
+		else:
+			active_visual.modulate = Color(1.0, 1.0, 1.0, 1.0)
+
+	if has_sprite_art():
+		if velocity.length_squared() > 10.0:
+			if _animated_sprite.animation != "run":
+				_animated_sprite.play("run")
+			if velocity.x != 0.0:
+				_animated_sprite.flip_h = velocity.x < 0.0
+		else:
+			if _animated_sprite.animation != "idle":
+				_animated_sprite.play("idle")
+
 	_contact_cooldown_remaining = maxf(_contact_cooldown_remaining - delta, 0.0)
 	_ranged_cooldown_remaining = maxf(_ranged_cooldown_remaining - delta, 0.0)
 	_support_cooldown_remaining = maxf(_support_cooldown_remaining - delta, 0.0)
@@ -144,6 +179,8 @@ func take_damage(amount: float) -> void:
 		queue_free()
 	else:
 		_hit_flash_remaining = 0.1
+		if has_sprite_art() and _animated_sprite.sprite_frames.has_animation("hit") and _animated_sprite.sprite_frames.get_frame_count("hit") > 0:
+			_animated_sprite.play("hit")
 		AudioManager.play_cue("enemy_hit")
 
 func apply_support_buff(source: Node, duration: float, speed_multiplier: float, damage_multiplier: float) -> void:

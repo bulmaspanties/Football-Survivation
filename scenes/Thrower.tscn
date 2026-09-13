@@ -20,6 +20,29 @@ corner_radius_top_right = 7
 corner_radius_bottom_right = 7
 corner_radius_bottom_left = 7
 
+[sub_resource type="SpriteFrames" id="SpriteFrames_thrower"]
+animations = [{
+"frames": [],
+"loop": true,
+"name": &"idle",
+"speed": 5.0
+}, {
+"frames": [],
+"loop": true,
+"name": &"run",
+"speed": 8.0
+}, {
+"frames": [],
+"loop": false,
+"name": &"hit",
+"speed": 10.0
+}, {
+"frames": [],
+"loop": false,
+"name": &"death",
+"speed": 10.0
+}]
+
 [node name="Thrower" type="CharacterBody2D"]
 collision_layer = 2
 collision_mask = 1
@@ -40,6 +63,11 @@ ranged_projectile_scene = ExtResource("4_ball")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_thrower")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+visible = false
+sprite_frames = SubResource("SpriteFrames_thrower")
+animation = &"idle"
 
 [node name="Visual" type="Panel" parent="."]
 offset_left = -15.0

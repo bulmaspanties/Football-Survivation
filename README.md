@@ -164,6 +164,45 @@ From the title screen, select "Change Arena" to open the arena selection menu:
 - The selected map is previewed dynamically in the background on the title and selection menus and applied cleanly at kickoff and run restart without altering active gameplay state.
 - **Adding new maps**: To introduce a new map theme, add an entry to the `MAPS` array in `scripts/profile_manager.gd` with its visual parameters (colors for turf, end zones, lines, etc.), and optionally add an unlock entry to `META_UPGRADES`. The `Arena` class (`scripts/arena.gd`) and `MapPanel` UI will automatically handle rendering and selection.
 
+## Adding real sprite art
+
+The project is architected with complete sprite-import scaffolding so finished pixel art sprite sheets can be dropped in without code refactoring.
+
+### Visual architecture & procedural fallback
+
+Every playable character, enemy archetype, and boss includes an `AnimatedSprite2D` node with a structured `SpriteFrames` resource (`idle`, `run`, `hit`, `death` animation tracks). If no frames/textures are assigned, the entity automatically falls back to its built-in procedural geometry, styleboxes, and colorblind-aware shaders/palettes. Once real sprite frames are attached, the procedural placeholders are hidden and the entity plays its animated sprite states with automatic horizontal flipping and damage flashing.
+
+### Size, formatting & anchor expectations
+
+- **File format**: 32-bit RGBA PNG with transparent background.
+- **Frame size**: 48x48 pixels per frame for characters and enemies (64x64 or 96x96 for Boss/Elite).
+- **Pixel art filtering**: Configured project-wide in `project.godot` (`rendering/textures/canvas_textures/default_texture_filter=0`, nearest-neighbor, no mipmaps).
+- **Feet-anchor alignment**: Center-bottom aligned (origin at `X: 24, Y: 44` for 48x48 frames) to match physics collision capsules.
+- **Animation states**:
+  - `idle`: 4–6 frames, looped (5–6 FPS)
+  - `run`: 6–8 frames, looped (8–12 FPS)
+  - `hit`: 2–4 frames, non-looping (10–15 FPS)
+  - `death`: 4–8 frames, non-looping (10–15 FPS)
+- **Directional layout**: 8 directions (Down, Down-Right, Right, Up-Right, Up, Up-Left, Left, Down-Left) or 5 directions with horizontal flip.
+
+### Asset folder hierarchy
+
+Drop PNG sprite sheets into the designated subfolders under `assets/sprites/`:
+
+- `assets/sprites/player/quarterback/`: Quarterback character sprite sheets
+- `assets/sprites/player/running_back/`: Running Back character sprite sheets
+- `assets/sprites/player/linebacker/`: Linebacker character sprite sheets
+- `assets/sprites/enemies/defender/`: Defender enemy sprite sheets
+- `assets/sprites/enemies/runner/`: Runner enemy sprite sheets
+- `assets/sprites/enemies/thrower/`: Thrower enemy sprite sheets
+- `assets/sprites/enemies/blocker/`: Blocker enemy sprite sheets
+- `assets/sprites/enemies/coach/`: Coach support enemy sprite sheets
+- `assets/sprites/boss/elite/`: Halftime Elite boss sprite sheets
+- `assets/sprites/maps/classic_field/`: Classic field decor/goalpost sprites
+- `assets/sprites/maps/bluegrass_field/`: Bluegrass field decor/goalpost sprites
+
+To assign frames in Godot: open the target scene (`Player.tscn`, `Enemy.tscn`, `Boss.tscn`, etc.), click the `AnimatedSprite2D` node, select the `SpriteFrames` resource in the Inspector, and use the SpriteFrames panel to slice your sheet into frames for the corresponding animation slot (`idle`, `run`, `hit`, `death`).
+
 Defenders appear around the arena perimeter and damage the player on contact. Fast runners begin joining the waves as survival pressure rises; they move faster but have lower health and contact damage. Player health is displayed in the top-left HUD; the game-over panel appears when health reaches zero.
 
 Throwers maintain a preferred distance and periodically launch enemy footballs; Blockers are larger and push the player away on contact; Coaches periodically refresh bounded speed/contact-damage buffs on nearby enemies and remove their buffs when defeated. Enemy projectiles only damage the player, never enemies or player-owned weapons. Referee roles are not implemented yet.

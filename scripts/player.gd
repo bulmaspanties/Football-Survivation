@@ -25,7 +25,32 @@ var _knockback_velocity := Vector2.ZERO
 var _damage_cooldown_remaining := 0.0
 var _feedback_remaining := 0.0
 @onready var _visual: CanvasItem = $Visual
+@onready var _jersey_stripe: CanvasItem = get_node_or_null("JerseyStripe")
+@onready var _football_mark: CanvasItem = get_node_or_null("FootballMark")
 @onready var _role_label: Label = $RoleLabel
+@onready var _animated_sprite: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
+
+func has_sprite_art() -> bool:
+	if not is_instance_valid(_animated_sprite) or _animated_sprite.sprite_frames == null:
+		return false
+	var frames := _animated_sprite.sprite_frames
+	for anim_name in ["idle", "run", "hit", "death"]:
+		if frames.has_animation(anim_name) and frames.get_frame_count(anim_name) > 0:
+			return true
+	return false
+
+func _sync_visual_mode() -> void:
+	var use_sprite := has_sprite_art()
+	if is_instance_valid(_animated_sprite):
+		_animated_sprite.visible = use_sprite
+	if is_instance_valid(_visual):
+		_visual.visible = not use_sprite
+	if is_instance_valid(_jersey_stripe):
+		_jersey_stripe.visible = not use_sprite
+	if is_instance_valid(_football_mark):
+		_football_mark.visible = not use_sprite
+	if is_instance_valid(_role_label):
+		_role_label.visible = not use_sprite
 
 func _ready() -> void:
 	add_to_group("player")
@@ -33,10 +58,23 @@ func _ready() -> void:
 	health_changed.emit(health, max_health)
 	experience_changed.emit(experience, experience_to_next_level, level)
 	SettingsManager.palette_changed.connect(_update_character_visual)
+	_sync_visual_mode()
 
 func _physics_process(delta: float) -> void:
 	_feedback_remaining = maxf(_feedback_remaining - delta, 0.0)
-	_visual.modulate = Color(1.0, 0.45, 0.45, 1.0) if _feedback_remaining > 0.0 else Color.WHITE
+	var feedback_active := _feedback_remaining > 0.0
+	if has_sprite_art():
+		_animated_sprite.modulate = Color(1.0, 0.45, 0.45, 1.0) if feedback_active else Color.WHITE
+		if velocity.length_squared() > 10.0:
+			if _animated_sprite.animation != "run":
+				_animated_sprite.play("run")
+			if velocity.x != 0.0:
+				_animated_sprite.flip_h = velocity.x < 0.0
+		else:
+			if _animated_sprite.animation != "idle":
+				_animated_sprite.play("idle")
+	else:
+		_visual.modulate = Color(1.0, 0.45, 0.45, 1.0) if feedback_active else Color.WHITE
 	_damage_cooldown_remaining = maxf(_damage_cooldown_remaining - delta, 0.0)
 	var input_vector := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	_knockback_velocity = _knockback_velocity.move_toward(Vector2.ZERO, 900.0 * delta)
@@ -49,12 +87,16 @@ func take_damage(amount: float) -> void:
 	_damage_cooldown_remaining = damage_cooldown
 	health = maxf(health - amount, 0.0)
 	_feedback_remaining = 0.22
+	if has_sprite_art() and _animated_sprite.sprite_frames.has_animation("hit") and _animated_sprite.sprite_frames.get_frame_count("hit") > 0:
+		_animated_sprite.play("hit")
 	SettingsManager.rumble(0.4, 0.7, 0.2)
 	damage_taken.emit(amount)
 	health_changed.emit(health, max_health)
 	if health <= 0.0:
 		velocity = Vector2.ZERO
 		set_physics_process(false)
+		if has_sprite_art() and _animated_sprite.sprite_frames.has_animation("death") and _animated_sprite.sprite_frames.get_frame_count("death") > 0:
+			_animated_sprite.play("death")
 		SettingsManager.rumble(0.5, 0.7, 0.35)
 		died.emit()
 
