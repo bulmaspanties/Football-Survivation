@@ -57,7 +57,9 @@ The command should exit successfully only when the project and its scripts/scene
 
 Movement supports all eight directions and is normalized so diagonal movement is not faster.
 
-The pause menu provides Resume, Restart Run, Return to Title, and Settings controls. Settings include a session-persistent master volume slider, mute toggle, fullscreen/windowed toggle, and reset button. Settings remain active while navigating or restarting within the current Godot session.
+The pause menu provides Resume, Restart Run, Return to Title, Profile Selection, and Settings controls. Escape/P only pauses an active run; level-up, title, victory, and game-over overlays keep their existing behavior. Settings include a session-persistent master volume slider, mute toggle, fullscreen/windowed toggle, and reset button. Settings remain active while navigating or restarting within the current Godot session.
+
+Before a run, choose one of exactly three profile slots. Empty slots create a profile; occupied slots show created/last-played metadata and permanent currency/unlock placeholders. Profiles are stored as JSON at Godot's `user://football_survivation_profiles.json` location. Only profile metadata is saved: active run state, XP, upgrades, enemies, pickups, projectiles, and timer are always reset for a new run. Switching profiles never overwrites another slot.
 
 Defenders appear around the arena perimeter and damage the player on contact. Fast runners begin joining the waves as survival pressure rises; they move faster but have lower health and contact damage. Player health is displayed in the top-left HUD; the game-over panel appears when health reaches zero.
 

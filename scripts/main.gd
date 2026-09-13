@@ -18,6 +18,7 @@ const ESCALATION_START_SECONDS := 30.0
 @onready var victory_panel: Panel = $HUD/VictoryPanel
 @onready var enemy_spawner: EnemySpawner = $EnemySpawner
 @onready var title_panel: Panel = $HUD/TitlePanel
+@onready var profile_panel: Panel = $HUD/ProfilePanel
 @onready var pause_panel: Panel = $HUD/PausePanel
 @onready var settings_panel: Panel = $HUD/SettingsPanel
 @onready var volume_slider: HSlider = $HUD/SettingsPanel/VolumeSlider
@@ -49,11 +50,15 @@ func _ready() -> void:
 	player.level_up.connect(_on_player_level_up)
 	player.died.connect(_on_player_died)
 	$HUD/TitlePanel/StartButton.pressed.connect(_start_run)
+	$HUD/ProfilePanel/Slot1.pressed.connect(_select_profile.bind(0))
+	$HUD/ProfilePanel/Slot2.pressed.connect(_select_profile.bind(1))
+	$HUD/ProfilePanel/Slot3.pressed.connect(_select_profile.bind(2))
 	$HUD/GameOverPanel/RestartButton.pressed.connect(_restart_run)
 	$HUD/VictoryPanel/RestartButton.pressed.connect(_restart_run)
 	$HUD/PausePanel/ResumeButton.pressed.connect(_resume_run)
 	$HUD/PausePanel/RestartButton.pressed.connect(_restart_run)
 	$HUD/PausePanel/TitleButton.pressed.connect(_return_to_title)
+	$HUD/PausePanel/ProfileButton.pressed.connect(_return_to_profiles)
 	$HUD/PausePanel/SettingsButton.pressed.connect(_open_settings)
 	$HUD/SettingsPanel/BackButton.pressed.connect(_close_settings)
 	$HUD/SettingsPanel/ResetButton.pressed.connect(_reset_settings)
@@ -62,6 +67,9 @@ func _ready() -> void:
 	fullscreen_check.toggled.connect(_on_fullscreen_toggled)
 	SettingsManager.settings_changed.connect(_sync_settings_controls)
 	_sync_settings_controls()
+	_refresh_profile_buttons()
+	profile_panel.visible = ProfileManager.profile_selection_requested or ProfileManager.selected_slot < 0
+	title_panel.visible = not profile_panel.visible
 	for index in upgrade_buttons.size():
 		upgrade_buttons[index].pressed.connect(_on_upgrade_selected.bind(index))
 	player.set_physics_process(false)
@@ -128,11 +136,7 @@ func _on_upgrade_selected(button_index: int) -> void:
 	upgrade_panel.visible = false
 	get_tree().paused = false
 
-func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("pause_game") and not event.is_echo():
-		_toggle_pause()
-
-func _toggle_pause() -> void:
+func _on_pause_requested() -> void:
 	if not run_started or run_finished or title_panel.visible or upgrade_panel.visible:
 		return
 	if settings_panel.visible:
@@ -185,6 +189,8 @@ func _start_run() -> void:
 	run_finished = false
 	survival_time = 0.0
 	title_panel.visible = false
+	profile_panel.visible = false
+	ProfileManager.mark_played()
 	enemy_spawner.reset_run()
 	player.set_physics_process(true)
 	auto_weapon.set_process(true)
@@ -219,4 +225,25 @@ func _restart_run() -> void:
 
 func _return_to_title() -> void:
 	get_tree().paused = false
+	ProfileManager.profile_selection_requested = false
 	get_tree().reload_current_scene()
+
+func _return_to_profiles() -> void:
+	get_tree().paused = false
+	ProfileManager.profile_selection_requested = true
+	get_tree().reload_current_scene()
+
+func _select_profile(slot: int) -> void:
+	ProfileManager.select_slot(slot)
+	profile_panel.visible = false
+	title_panel.visible = true
+	$HUD/TitlePanel/StartButton.grab_focus()
+
+func _refresh_profile_buttons() -> void:
+	var buttons: Array[Button] = [
+		$HUD/ProfilePanel/Slot1,
+		$HUD/ProfilePanel/Slot2,
+		$HUD/ProfilePanel/Slot3,
+	]
+	for index in buttons.size():
+		buttons[index].text = "SLOT %d\n%s" % [index + 1, ProfileManager.profile_summary(index)]
