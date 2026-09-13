@@ -12,7 +12,7 @@ The current foundation provides a playable arena, a reusable player scene, an au
 2. Import this repository in the Godot Project Manager, or open the repository folder from Godot.
 3. Press **F6** to run the current scene or **F5** to run the project. The project starts in `scenes/Main.tscn`.
 
-The current scene is a bounded placeholder arena with a player character and a following camera. It uses only built-in Godot nodes and shapes, so no asset setup is required.
+The current scene is a football-field arena with green turf, end zones, yard lines, midfield markings, a bright boundary, a player character, and a following camera. It uses only built-in Godot nodes, drawing primitives, and shapes, so no asset setup is required. Players, opponents, pickups, and footballs use distinct placeholder colors and silhouettes; enemy hits flash and defeated enemies emit a brief burst.
 
 ## Project structure
 

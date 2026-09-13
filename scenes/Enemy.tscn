@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/enemy.gd" id="1_enemy"]
 [ext_resource type="PackedScene" path="res://scenes/ExperiencePickup.tscn" id="2_experience"]
+[ext_resource type="PackedScene" path="res://scenes/DeathBurst.tscn" id="3_death_burst"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_enemy"]
 radius = 16.0
@@ -23,6 +24,7 @@ collision_layer = 2
 collision_mask = 1
 script = ExtResource("1_enemy")
 experience_scene = ExtResource("2_experience")
+death_burst_scene = ExtResource("3_death_burst")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_enemy")
@@ -34,3 +36,7 @@ offset_right = 16.0
 offset_bottom = 16.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_enemy")
+
+[node name="Helmet" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-11, -12, 8, -12, 14, -5, 10, -2, -14, -2, -16, -7)
+color = Color(0.98, 0.55, 0.12, 1)

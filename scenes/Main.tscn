@@ -66,11 +66,68 @@ script = ExtResource("4_main")
 
 [node name="Floor" type="Polygon2D" parent="Arena"]
 polygon = PackedVector2Array(-560, -300, 560, -300, 560, 300, -560, 300)
-color = Color(0.08, 0.28, 0.2, 1)
+color = Color(0.06, 0.34, 0.16, 1)
+
+[node name="LeftEndZone" type="Polygon2D" parent="Arena"]
+polygon = PackedVector2Array(-560, -300, -470, -300, -470, 300, -560, 300)
+color = Color(0.04, 0.25, 0.13, 1)
+
+[node name="RightEndZone" type="Polygon2D" parent="Arena"]
+polygon = PackedVector2Array(470, -300, 560, -300, 560, 300, 470, 300)
+color = Color(0.04, 0.25, 0.13, 1)
+
+[node name="YardLineLeft40" type="Line2D" parent="Arena"]
+points = PackedVector2Array(-376, -300, -376, 300)
+width = 2.0
+default_color = Color(0.75, 0.95, 0.73, 0.72)
+
+[node name="YardLineLeft30" type="Line2D" parent="Arena"]
+points = PackedVector2Array(-282, -300, -282, 300)
+width = 2.0
+default_color = Color(0.75, 0.95, 0.73, 0.72)
+
+[node name="YardLineLeft20" type="Line2D" parent="Arena"]
+points = PackedVector2Array(-188, -300, -188, 300)
+width = 2.0
+default_color = Color(0.75, 0.95, 0.73, 0.72)
+
+[node name="YardLineLeft10" type="Line2D" parent="Arena"]
+points = PackedVector2Array(-94, -300, -94, 300)
+width = 2.0
+default_color = Color(0.75, 0.95, 0.73, 0.72)
+
+[node name="YardLineRight10" type="Line2D" parent="Arena"]
+points = PackedVector2Array(94, -300, 94, 300)
+width = 2.0
+default_color = Color(0.75, 0.95, 0.73, 0.72)
+
+[node name="YardLineRight20" type="Line2D" parent="Arena"]
+points = PackedVector2Array(188, -300, 188, 300)
+width = 2.0
+default_color = Color(0.75, 0.95, 0.73, 0.72)
+
+[node name="YardLineRight30" type="Line2D" parent="Arena"]
+points = PackedVector2Array(282, -300, 282, 300)
+width = 2.0
+default_color = Color(0.75, 0.95, 0.73, 0.72)
+
+[node name="YardLineRight40" type="Line2D" parent="Arena"]
+points = PackedVector2Array(376, -300, 376, 300)
+width = 2.0
+default_color = Color(0.75, 0.95, 0.73, 0.72)
+
+[node name="Boundary" type="Line2D" parent="Arena"]
+points = PackedVector2Array(-560, -300, 560, -300, 560, 300, -560, 300, -560, -300)
+width = 5.0
+default_color = Color(0.92, 0.97, 0.86, 1)
+
+[node name="MidfieldCircle" type="Polygon2D" parent="Arena"]
+polygon = PackedVector2Array(0, -58, 20, -54, 38, -38, 54, -20, 58, 0, 54, 20, 38, 38, 20, 54, 0, 58, -20, 54, -38, 38, -54, 20, -58, 0, -54, -20, -38, -38, -20, -54)
+color = Color(0.75, 0.95, 0.73, 0.72)
 
 [node name="CenterMark" type="Polygon2D" parent="Arena"]
 polygon = PackedVector2Array(-2, -300, 2, -300, 2, 300, -2, 300)
-color = Color(0.14, 0.42, 0.3, 1)
+color = Color(0.9, 0.98, 0.84, 0.9)
 
 [node name="TopBoundary" type="StaticBody2D" parent="Arena"]
 position = Vector2(0, -312)
@@ -117,7 +174,7 @@ offset_top = 10.0
 offset_right = 248.0
 offset_bottom = 54.0
 theme_override_colors/font_color = Color(0.82, 0.9, 0.96, 1)
-text = "Move: WASD / Arrow Keys"
+text = "MOVE  WASD / ARROWS\nSURVIVE  5:00"
 vertical_alignment = 1
 
 [node name="HUD" type="CanvasLayer" parent="."]

@@ -36,6 +36,14 @@ offset_bottom = 22.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_player")
 
+[node name="JerseyStripe" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-3, -22, 3, -22, 3, 22, -3, 22)
+color = Color(0.95, 0.95, 1, 0.9)
+
+[node name="FootballMark" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-7, -5, -2, -8, 5, -5, 8, 0, 5, 5, -2, 8, -7, 5, -9, 0)
+color = Color(0.55, 0.25, 0.08, 1)
+
 [node name="Camera2D" type="Camera2D" parent="."]
 zoom = Vector2(1.25, 1.25)
 position_smoothing_enabled = true
