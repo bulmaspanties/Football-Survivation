@@ -4,7 +4,7 @@ Football Survivation is a Godot 4 project foundation for a top-down survival gam
 
 ## Project status
 
-The current foundation provides a playable arena, a reusable player scene, an automatic football weapon, and a structured five-minute survival run. Enemies spawn around the arena perimeter, pursue the player, deal contact damage, drop collectible experience, and become more numerous and dangerous over time. Collected XP raises the player's level and pauses the game for an upgrade choice. Footballs automatically target nearby enemies and deal damage on impact. Reach the five-minute target for victory; player health reaching zero remains a distinct game-over state.
+The current foundation provides a playable arena, a reusable player scene, an automatic football weapon, and a structured five-minute survival run. Standard defenders spawn around the arena perimeter, while fast runners join gradually as pressure increases. Both pursue the player, deal contact damage, drop collectible experience, and share the same extensible enemy behavior and combat feedback. Collected XP raises the player's level and pauses the game for an upgrade choice. Footballs automatically target nearby enemies and deal damage on impact. Reach the five-minute target for victory; player health reaching zero remains a distinct game-over state.
 
 ## Open and run
 
@@ -20,6 +20,7 @@ The current scene is a football-field arena with green turf, end zones, yard lin
 - `scenes/Main.tscn`: project entry scene and bounded arena
 - `scenes/Player.tscn`: reusable player scene
 - `scenes/Enemy.tscn`: reusable pursuing enemy scene
+- `scenes/Runner.tscn`: fast/light enemy archetype using the shared enemy script
 - `scenes/Football.tscn`: reusable football projectile scene
 - `scenes/ExperiencePickup.tscn`: reusable collectible XP scene
 - `scripts/player.gd`: player movement behavior
@@ -39,7 +40,7 @@ The current scene is a football-field arena with green turf, end zones, yard lin
 
 Movement supports all eight directions and is normalized so diagonal movement is not faster.
 
-Enemies appear around the arena perimeter and damage the player on contact. Player health is displayed in the top-left HUD; the game-over panel appears when health reaches zero.
+Defenders appear around the arena perimeter and damage the player on contact. Fast runners begin joining the waves as survival pressure rises; they move faster but have lower health and contact damage. Player health is displayed in the top-left HUD; the game-over panel appears when health reaches zero.
 
 The player automatically throws footballs at nearby enemies. No additional input is required; footballs disappear after hitting an enemy or reaching their lifetime.
 

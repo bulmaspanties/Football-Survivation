@@ -2,10 +2,13 @@ class_name EnemySpawner
 extends Node2D
 
 @export var enemy_scene: PackedScene
+@export var runner_scene: PackedScene
 @export var spawn_interval := 2.5
 @export var max_enemies := 12
 @export var spawn_x := 520.0
 @export var spawn_y := 270.0
+@export var runner_chance_start := 0.0
+@export var runner_chance_max := 0.3
 
 var _spawn_timer := 0.0
 var pressure := 1.0
@@ -25,7 +28,13 @@ func _process(delta: float) -> void:
 func _spawn_enemy() -> void:
 	if enemy_scene == null:
 		return
-	var enemy := enemy_scene.instantiate() as Enemy
+	var scene_to_spawn := enemy_scene
+	var runner_chance := clampf((pressure - 1.0) * 0.75, runner_chance_start, runner_chance_max)
+	if runner_scene != null and randf() < runner_chance:
+		scene_to_spawn = runner_scene
+	if scene_to_spawn == null:
+		return
+	var enemy: Enemy = scene_to_spawn.instantiate() as Enemy
 	if enemy == null:
 		return
 	enemy.position = _perimeter_position()
