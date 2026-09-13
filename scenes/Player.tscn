@@ -47,6 +47,17 @@ color = Color(0.95, 0.95, 1, 0.9)
 polygon = PackedVector2Array(-7, -5, -2, -8, 5, -5, 8, 0, 5, 5, -2, 8, -7, 5, -9, 0)
 color = Color(0.55, 0.25, 0.08, 1)
 
+[node name="RoleLabel" type="Label" parent="."]
+offset_left = -18.0
+offset_top = -38.0
+offset_right = 18.0
+offset_bottom = -22.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "QB"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="Camera2D" type="Camera2D" parent="."]
 zoom = Vector2(1.25, 1.25)
 position_smoothing_enabled = true

@@ -15,6 +15,52 @@ const META_UPGRADES := [
 	{"id": "hail_mary_scout", "label": "Deep Threat Scout: start with Hail Mary unlocked", "cost": 120},
 	{"id": "extra_muscle", "label": "Extra Muscle: +10 starting Tackle Burst & Stiff Arm damage", "cost": 70},
 	{"id": "film_study", "label": "Film Study: +15% XP gained", "cost": 90},
+	{"id": "unlock_running_back", "label": "Sign Running Back (playable character)", "cost": 70},
+	{"id": "unlock_linebacker", "label": "Sign Linebacker (playable character)", "cost": 90},
+]
+
+const STARTING_CHARACTER_ID := "quarterback"
+
+const CHARACTERS := [
+	{
+		"id": "quarterback",
+		"label": "Quarterback",
+		"tag": "QB",
+		"unlock_id": "",
+		"color": Color(0.12, 0.72, 0.95, 1),
+		"blurb": "Balanced all-around playmaker. No stat changes.",
+		"health_bonus": 0.0,
+		"speed_bonus": 0.0,
+		"football_damage_bonus": 0.0,
+		"tackle_damage_bonus": 0.0,
+		"stiff_arm_damage_bonus": 0.0,
+	},
+	{
+		"id": "running_back",
+		"label": "Running Back",
+		"tag": "RB",
+		"unlock_id": "unlock_running_back",
+		"color": Color(0.95, 0.62, 0.12, 1),
+		"blurb": "+40 speed, -15 max health. Elusive playmaker built for evasion.",
+		"health_bonus": -15.0,
+		"speed_bonus": 40.0,
+		"football_damage_bonus": 0.0,
+		"tackle_damage_bonus": 0.0,
+		"stiff_arm_damage_bonus": 0.0,
+	},
+	{
+		"id": "linebacker",
+		"label": "Linebacker",
+		"tag": "LB",
+		"unlock_id": "unlock_linebacker",
+		"color": Color(0.75, 0.18, 0.2, 1),
+		"blurb": "+30 max health, -20 speed, +8 Tackle Burst & Stiff Arm damage. Built to punish contact.",
+		"health_bonus": 30.0,
+		"speed_bonus": -20.0,
+		"football_damage_bonus": 0.0,
+		"tackle_damage_bonus": 8.0,
+		"stiff_arm_damage_bonus": 8.0,
+	},
 ]
 
 func _ready() -> void:
@@ -60,6 +106,50 @@ func set_pro_difficulty(enabled: bool) -> void:
 	profiles[selected_slot]["pro_difficulty"] = enabled
 	_save_profiles()
 
+func character_data(character_id: String) -> Dictionary:
+	for character in CHARACTERS:
+		if character["id"] == character_id:
+			return character
+	return {}
+
+func character_unlock_cost(character_id: String) -> int:
+	var character := character_data(character_id)
+	if character.is_empty():
+		return 0
+	var unlock_id := str(character["unlock_id"])
+	if unlock_id.is_empty():
+		return 0
+	for upgrade in META_UPGRADES:
+		if upgrade["id"] == unlock_id:
+			return int(upgrade["cost"])
+	return 0
+
+func is_character_unlocked(character_id: String) -> bool:
+	var character := character_data(character_id)
+	if character.is_empty():
+		return false
+	var unlock_id := str(character["unlock_id"])
+	if unlock_id.is_empty():
+		return true
+	return has_unlock(unlock_id)
+
+func selected_character() -> String:
+	if selected_slot < 0 or selected_slot >= SLOT_COUNT:
+		return STARTING_CHARACTER_ID
+	var stored := str(profiles[selected_slot].get("selected_character", STARTING_CHARACTER_ID))
+	if character_data(stored).is_empty() or not is_character_unlocked(stored):
+		return STARTING_CHARACTER_ID
+	return stored
+
+func set_selected_character(character_id: String) -> bool:
+	if selected_slot < 0 or selected_slot >= SLOT_COUNT:
+		return false
+	if not is_character_unlocked(character_id):
+		return false
+	profiles[selected_slot]["selected_character"] = character_id
+	_save_profiles()
+	return true
+
 func has_unlock(upgrade_id: String) -> bool:
 	if selected_slot < 0 or selected_slot >= SLOT_COUNT:
 		return false
@@ -86,11 +176,15 @@ func profile_summary(slot: int) -> String:
 	if slot < 0 or slot >= SLOT_COUNT or profiles[slot].is_empty():
 		return "Empty slot\nSelect to create profile"
 	var profile := profiles[slot]
-	return "Created: %s\nLast played: %s\nCoins: %d\nDifficulty: %s" % [
+	var character_id := str(profile.get("selected_character", STARTING_CHARACTER_ID))
+	var character := character_data(character_id)
+	var character_label := str(character.get("label", "Quarterback")) if not character.is_empty() else "Quarterback"
+	return "Created: %s\nLast played: %s\nCoins: %d\nDifficulty: %s\nPlayer: %s" % [
 		profile.get("created", "Unknown"),
 		profile.get("last_played", "Never"),
 		int(profile.get("permanent_currency", 0)),
 		"PRO" if bool(profile.get("pro_difficulty", false)) else "NORMAL",
+		character_label,
 	]
 
 func _new_profile() -> Dictionary:
@@ -102,6 +196,7 @@ func _new_profile() -> Dictionary:
 		"permanent_currency": 0,
 		"unlocks": [],
 		"pro_difficulty": false,
+		"selected_character": STARTING_CHARACTER_ID,
 	}
 
 func _load_profiles() -> void:
@@ -143,6 +238,8 @@ func _normalize_profile(raw: Dictionary) -> Dictionary:
 	normalized["unlocks"] = unlocks.duplicate()
 	var pro_difficulty = raw.get("pro_difficulty", false)
 	normalized["pro_difficulty"] = pro_difficulty if pro_difficulty is bool else false
+	var selected_character_raw = raw.get("selected_character", STARTING_CHARACTER_ID)
+	normalized["selected_character"] = selected_character_raw if selected_character_raw is String else STARTING_CHARACTER_ID
 	return normalized
 
 func _save_profiles() -> void:

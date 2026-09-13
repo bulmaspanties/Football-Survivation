@@ -77,9 +77,21 @@ Runs award permanent currency once at the end: victory grants 100 coins; game ov
 - Deep Threat Scout: start with Hail Mary already unlocked — 120 coins
 - Extra Muscle: +10 starting Tackle Burst and Stiff Arm damage — 70 coins
 - Film Study: +15% XP gained for the whole run — 90 coins
+- Sign Running Back (playable character unlock) — 70 coins
+- Sign Linebacker (playable character unlock) — 90 coins
 - Pro Difficulty (toggle, free): tougher enemies via a higher pressure curve, in exchange for a +50% end-of-run coin reward. Toggling does not cost currency and can be switched off again at any time from Front Office.
 
 Purchases are one-time (owned upgrades are marked and cannot be re-bought), reject insufficient funds, and — along with the Pro Difficulty toggle — only take effect starting with the next run; they never alter an active run mid-session. Weapons purchased as starting unlocks no longer need to be found via in-run level-ups, but the level-up unlock options remain available as a fallback for any weapon not already purchased, with no duplicate unlocks possible either way.
+
+## Character select
+
+From the title screen (after choosing a profile), use "Change Character" to open player select. Three playable characters share the same weapons, controls, and HUD, but differ in a small starting stat profile:
+
+- **Quarterback** (unlocked by default): balanced all-around playmaker, no stat changes — the reference build.
+- **Running Back** (unlock via Front Office, 70 coins): +40 starting movement speed, -15 starting max health. Built for evasive, high-mobility play.
+- **Linebacker** (unlock via Front Office, 90 coins): +30 starting max health, -20 starting movement speed, +8 starting Tackle Burst and Stiff Arm damage. Built to punish contact.
+
+Each character shows a distinct jersey color and a two-letter role tag (QB/RB/LB) on the player sprite. The character screen shows each option's lock state, stat blurb, and unlock cost if locked; picking a locked character does nothing until it's purchased from Front Office. The profile remembers its last-selected unlocked character (falling back to Quarterback if the saved pick is ever invalid or not owned) and applies it — stacked additively with meta stat upgrades and independent of the Pro Difficulty toggle — only when a new run starts, never mid-run.
 
 Defenders appear around the arena perimeter and damage the player on contact. Fast runners begin joining the waves as survival pressure rises; they move faster but have lower health and contact damage. Player health is displayed in the top-left HUD; the game-over panel appears when health reaches zero.
 

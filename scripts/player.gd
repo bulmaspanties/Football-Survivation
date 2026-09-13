@@ -24,6 +24,7 @@ var _knockback_velocity := Vector2.ZERO
 var _damage_cooldown_remaining := 0.0
 var _feedback_remaining := 0.0
 @onready var _visual: CanvasItem = $Visual
+@onready var _role_label: Label = $RoleLabel
 
 func _ready() -> void:
 	add_to_group("player")
@@ -139,3 +140,27 @@ func apply_profile_upgrades(unlocks: Array) -> void:
 			"film_study":
 				xp_multiplier += 0.15
 	health_changed.emit(health, max_health)
+
+func apply_character(character: Dictionary) -> void:
+	if character.is_empty():
+		return
+	max_health += float(character.get("health_bonus", 0.0))
+	max_health = maxf(max_health, 10.0)
+	health = max_health
+	speed = maxf(speed + float(character.get("speed_bonus", 0.0)), 60.0)
+	var football_bonus := float(character.get("football_damage_bonus", 0.0))
+	if football_bonus != 0.0:
+		($AutoWeapon as AutoWeapon).upgrade_damage(football_bonus)
+	var tackle_bonus := float(character.get("tackle_damage_bonus", 0.0))
+	if tackle_bonus != 0.0:
+		($TackleWeapon as TackleWeapon).upgrade_damage(tackle_bonus)
+	var stiff_arm_bonus := float(character.get("stiff_arm_damage_bonus", 0.0))
+	if stiff_arm_bonus != 0.0:
+		($StiffArm as StiffArm).upgrade_damage(stiff_arm_bonus)
+	health_changed.emit(health, max_health)
+	if character.has("color") and _visual is Panel:
+		var style: StyleBoxFlat = (_visual as Panel).get_theme_stylebox("panel").duplicate()
+		style.bg_color = character["color"]
+		(_visual as Panel).add_theme_stylebox_override("panel", style)
+	if is_instance_valid(_role_label):
+		_role_label.text = str(character.get("tag", ""))

@@ -35,8 +35,19 @@ const HALFTIME_WARNING_SECONDS := 3.0
 	$HUD/MetaPanel/UpgradeButton5,
 	$HUD/MetaPanel/UpgradeButton6,
 	$HUD/MetaPanel/UpgradeButton7,
+	$HUD/MetaPanel/UpgradeButton8,
+	$HUD/MetaPanel/UpgradeButton9,
 ]
 @onready var difficulty_button: Button = $HUD/MetaPanel/DifficultyButton
+@onready var character_panel: Panel = $HUD/CharacterPanel
+@onready var character_status: Label = $HUD/CharacterPanel/Status
+@onready var character_buttons: Array[Button] = [
+	$HUD/CharacterPanel/CharacterButton1,
+	$HUD/CharacterPanel/CharacterButton2,
+	$HUD/CharacterPanel/CharacterButton3,
+]
+@onready var title_character_button: Button = $HUD/TitlePanel/CharacterButton
+@onready var selected_character_label: Label = $HUD/TitlePanel/SelectedCharacterLabel
 @onready var pause_panel: Panel = $HUD/PausePanel
 @onready var settings_panel: Panel = $HUD/SettingsPanel
 @onready var volume_slider: HSlider = $HUD/SettingsPanel/VolumeSlider
@@ -93,6 +104,10 @@ func _ready() -> void:
 	for index in meta_buttons.size():
 		meta_buttons[index].pressed.connect(_purchase_meta_upgrade.bind(index))
 	difficulty_button.toggled.connect(_on_difficulty_toggled)
+	title_character_button.pressed.connect(_open_character_select)
+	$HUD/CharacterPanel/BackButton.pressed.connect(_close_character_select)
+	for index in character_buttons.size():
+		character_buttons[index].pressed.connect(_select_character.bind(index))
 	$HUD/GameOverPanel/RestartButton.pressed.connect(_restart_run)
 	$HUD/VictoryPanel/RestartButton.pressed.connect(_restart_run)
 	$HUD/PausePanel/ResumeButton.pressed.connect(_resume_run)
@@ -111,7 +126,9 @@ func _ready() -> void:
 	profile_panel.visible = ProfileManager.profile_selection_requested or ProfileManager.selected_slot < 0
 	title_panel.visible = not profile_panel.visible
 	meta_panel.visible = false
+	character_panel.visible = false
 	_refresh_meta_upgrades()
+	_refresh_title_character_label()
 	_refresh_loadout_hud()
 	_configure_focus()
 	for index in upgrade_buttons.size():
@@ -129,6 +146,7 @@ func _ready() -> void:
 
 func _configure_focus() -> void:
 	_set_vertical_focus([
+		$HUD/TitlePanel/CharacterButton,
 		$HUD/TitlePanel/StartButton,
 	])
 	_set_vertical_focus([
@@ -138,6 +156,7 @@ func _configure_focus() -> void:
 		$HUD/ProfilePanel/MetaButton,
 	])
 	_set_vertical_focus(meta_buttons + [difficulty_button, $HUD/MetaPanel/BackButton])
+	_set_vertical_focus(character_buttons + [$HUD/CharacterPanel/BackButton])
 	_set_vertical_focus(upgrade_buttons)
 	_set_vertical_focus([
 		$HUD/PausePanel/ResumeButton,
@@ -413,6 +432,7 @@ func _start_run() -> void:
 	title_panel.visible = false
 	profile_panel.visible = false
 	ProfileManager.mark_played()
+	player.apply_character(ProfileManager.character_data(ProfileManager.selected_character()))
 	player.apply_profile_upgrades(ProfileManager.selected_unlocks())
 	enemy_spawner.pro_difficulty = pro_difficulty_active
 	enemy_spawner.reset_run()
@@ -529,6 +549,7 @@ func _select_profile(slot: int) -> void:
 	ProfileManager.select_slot(slot)
 	profile_panel.visible = false
 	title_panel.visible = true
+	_refresh_title_character_label()
 	$HUD/TitlePanel/StartButton.grab_focus()
 
 func _open_meta_upgrades() -> void:
@@ -571,6 +592,44 @@ func _refresh_meta_upgrades() -> void:
 		var pro := ProfileManager.is_pro_difficulty()
 		difficulty_button.set_pressed_no_signal(pro)
 		difficulty_button.text = "Pro Difficulty [%s]  |  Tougher enemies, +50%% run reward" % ("ON" if pro else "OFF")
+
+func _open_character_select() -> void:
+	title_panel.visible = false
+	character_panel.visible = true
+	_refresh_character_select()
+	character_buttons[0].grab_focus()
+
+func _close_character_select() -> void:
+	character_panel.visible = false
+	title_panel.visible = true
+	_refresh_title_character_label()
+	$HUD/TitlePanel/CharacterButton.grab_focus()
+
+func _select_character(index: int) -> void:
+	var character: Dictionary = ProfileManager.CHARACTERS[index]
+	if ProfileManager.set_selected_character(character["id"]):
+		character_status.text = "Selected %s. Applies on your next kickoff.\nCoins: %d" % [character["label"], ProfileManager.currency()]
+	else:
+		character_status.text = "That player is locked. Sign them from Front Office first.\nCoins: %d" % ProfileManager.currency()
+	_refresh_character_select()
+
+func _refresh_character_select() -> void:
+	if not is_instance_valid(character_panel):
+		return
+	var current := ProfileManager.selected_character()
+	character_status.text = "Permanent coins: %d\nSelection applies on your next run." % ProfileManager.currency()
+	for index in character_buttons.size():
+		var character: Dictionary = ProfileManager.CHARACTERS[index]
+		var unlocked := ProfileManager.is_character_unlocked(character["id"])
+		var state := "SELECTED" if character["id"] == current else ("READY" if unlocked else "LOCKED")
+		var cost_text := "" if unlocked else "  |  Sign from Front Office for %d coins" % ProfileManager.character_unlock_cost(character["id"])
+		character_buttons[index].text = "%s  [%s]\n%s%s" % [character["label"], state, character["blurb"], cost_text]
+
+func _refresh_title_character_label() -> void:
+	if not is_instance_valid(selected_character_label):
+		return
+	var current := ProfileManager.character_data(ProfileManager.selected_character())
+	selected_character_label.text = "Playing as: %s" % str(current.get("label", "Quarterback"))
 
 func _refresh_profile_buttons() -> void:
 	var buttons: Array[Button] = [
