@@ -1,0 +1,45 @@
+name: Godot validation
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  godot:
+    name: Godot 4.3 headless check
+    runs-on: ubuntu-22.04
+    env:
+      GODOT_VERSION: 4.3
+      GODOT_ARCHIVE: Godot_v4.3-stable_linux.x86_64.zip
+      GODOT_SHA256: 7de56444b130b10af84d19c7e0cf63cf9e9937ee4ba94364c3b7dd114253ca21
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Download and verify Godot
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/${GODOT_ARCHIVE}" \
+            --output "${RUNNER_TEMP}/${GODOT_ARCHIVE}"
+          echo "${GODOT_SHA256}  ${RUNNER_TEMP}/${GODOT_ARCHIVE}" | sha256sum --check
+          unzip -q "${RUNNER_TEMP}/${GODOT_ARCHIVE}" -d "${RUNNER_TEMP}/godot"
+          find "${RUNNER_TEMP}/godot" -type f -name 'Godot_*_linux.x86_64' -exec cp {} "${RUNNER_TEMP}/godot-headless" \;
+          chmod +x "${RUNNER_TEMP}/godot-headless"
+
+      - name: Import and parse project
+        shell: bash
+        run: |
+          set -o pipefail
+          set +e
+          "${RUNNER_TEMP}/godot-headless" --headless --editor --path . --quit 2>&1 | tee "${RUNNER_TEMP}/godot.log"
+          godot_status=${PIPESTATUS[0]}
+          set -e
+          if [ "${godot_status}" -ne 0 ]; then
+            exit "${godot_status}"
+          fi
+          if grep -Eq 'Parse Error|SCRIPT ERROR|Failed to load script|Couldn.t load project' "${RUNNER_TEMP}/godot.log"; then
+            echo "Godot reported a script or project parse/load error."
+            exit 1
+          fi

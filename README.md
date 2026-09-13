@@ -1,5 +1,7 @@
 # Football Survivation
 
+[![Godot validation](https://github.com/bulmaspanties/Football-Survivation/actions/workflows/godot-check.yml/badge.svg)](https://github.com/bulmaspanties/Football-Survivation/actions/workflows/godot-check.yml)
+
 Football Survivation is a Godot 4 project foundation for a top-down survival game.
 
 ## Project status
@@ -13,6 +15,16 @@ The current foundation provides a playable arena, a reusable player scene, an au
 3. Press **F6** to run the current scene or **F5** to run the project. The project starts in `scenes/Main.tscn`.
 
 The project opens on a built-in title screen with a Start Run button and a short controls/objective guide. After starting, the scene is a football-field arena with green turf, end zones, yard lines, midfield markings, a bright boundary, a player character, and a following camera. It uses only built-in Godot nodes, drawing primitives, and shapes, so no asset setup is required. Players, opponents, pickups, and footballs use distinct placeholder colors and silhouettes; enemy hits flash and defeated enemies emit a brief burst.
+
+## Validation
+
+The repository runs a pinned Godot 4.3 headless import/parser check on every push and pull request through [`.github/workflows/godot-check.yml`](.github/workflows/godot-check.yml). To run the same check locally, install Godot 4.3 and execute:
+
+```sh
+godot --headless --editor --path . --quit
+```
+
+The command should exit successfully only when the project and its scripts/scenes import without parser or load errors.
 
 ## Project structure
 
