@@ -70,6 +70,8 @@ Throwers maintain a preferred distance and periodically launch enemy footballs; 
 
 The player automatically throws footballs at nearby enemies. Level-ups can unlock three additional weapons: **Tackle Burst** damages all nearby enemies with a close-range radius flash, **Hail Mary** launches a slow high-impact long-range shot, and **Stiff Arm** sweeps a short melee arc. Each weapon has its own cooldown and damage upgrades, and each unlock can only be selected once. No additional input is required; projectiles disappear after hitting an enemy or reaching their lifetime.
 
+During a run, the compact loadout HUD lists Football, Tackle Burst, Hail Mary, and Stiff Arm with locked/ready state plus live damage and cooldown values. Level-up cards identify **WEAPON UNLOCK**, **WEAPON UPGRADE**, or **PLAYER STAT** choices and show current and resulting values where applicable. Already-owned unlocks are removed from the choice pool, and the loadout resets with each new run.
+
 Enemies drop green experience pickups. Collect enough to level up, then call one of three football-themed upgrades while gameplay is paused: Power Run, Quick Snap, Long Bomb, Goal Line Stand, Open Field Sprint, or weapon-specific drills.
 
 Each run displays elapsed survival time and escalates enemy pressure after the opening period. Victory and game over both offer a restart button.

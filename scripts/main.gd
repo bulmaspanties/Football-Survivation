@@ -10,6 +10,7 @@ const HALFTIME_WARNING_SECONDS := 3.0
 @onready var experience_label: Label = $HUD/ExperiencePanel/ExperienceLabel
 @onready var survival_label: Label = $HUD/SurvivalPanel/SurvivalLabel
 @onready var boss_status: Label = $HUD/BossStatus
+@onready var loadout_label: Label = $HUD/LoadoutPanel/LoadoutLabel
 @onready var upgrade_panel: Panel = $HUD/UpgradePanel
 @onready var upgrade_title: Label = $HUD/UpgradePanel/UpgradeTitle
 @onready var upgrade_buttons: Array[Button] = [
@@ -94,6 +95,7 @@ func _ready() -> void:
 	title_panel.visible = not profile_panel.visible
 	meta_panel.visible = false
 	_refresh_meta_upgrades()
+	_refresh_loadout_hud()
 	for index in upgrade_buttons.size():
 		upgrade_buttons[index].pressed.connect(_on_upgrade_selected.bind(index))
 	player.set_physics_process(false)
@@ -151,7 +153,7 @@ func _on_player_level_up(new_level: int) -> void:
 	var start_index := (new_level - 1) % options.size()
 	for index in upgrade_buttons.size():
 		var option: Dictionary = options[(start_index + index) % options.size()]
-		upgrade_buttons[index].text = option["label"]
+		upgrade_buttons[index].text = _format_upgrade_option(option)
 		upgrade_buttons[index].set_meta("upgrade_id", option["id"])
 	upgrade_panel.visible = true
 	get_tree().paused = true
@@ -161,23 +163,63 @@ func _available_upgrade_options() -> Array[Dictionary]:
 	for option in UPGRADE_OPTIONS:
 		if option["id"] == "tackle_unlock" and player.tackle_unlocked:
 			continue
-		options.append(option)
+		if option["id"] == "hail_mary_unlock" and player.hail_mary_unlocked:
+			continue
+		if option["id"] == "stiff_arm_unlock" and player.stiff_arm_unlocked:
+			continue
+		var choice: Dictionary = option.duplicate()
+		choice["category"] = "PLAYER STAT" if not option.has("category") else "WEAPON UNLOCK"
+		options.append(choice)
 	if player.tackle_unlocked:
-		options.append({"id": "tackle_damage", "label": "Tackle Drill (+10 burst damage)", "category": "weapon"})
-		options.append({"id": "tackle_cooldown", "label": "Quick Tackle (-0.3s burst cooldown)", "category": "weapon"})
+		options.append({"id": "tackle_damage", "label": "Tackle Drill", "category": "WEAPON UPGRADE"})
+		options.append({"id": "tackle_cooldown", "label": "Quick Tackle", "category": "WEAPON UPGRADE"})
 	if player.hail_mary_unlocked:
-		options.append({"id": "hail_mary_damage", "label": "Hail Mary Power (+20 shot damage)", "category": "weapon"})
-		options.append({"id": "hail_mary_cooldown", "label": "Quick Release (-0.5s Hail Mary cooldown)", "category": "weapon"})
+		options.append({"id": "hail_mary_damage", "label": "Hail Mary Power", "category": "WEAPON UPGRADE"})
+		options.append({"id": "hail_mary_cooldown", "label": "Quick Release", "category": "WEAPON UPGRADE"})
 	if player.stiff_arm_unlocked:
-		options.append({"id": "stiff_arm_damage", "label": "Stiff Arm Drill (+10 arc damage)", "category": "weapon"})
-		options.append({"id": "stiff_arm_cooldown", "label": "Fast Hands (-0.25s stiff arm cooldown)", "category": "weapon"})
+		options.append({"id": "stiff_arm_damage", "label": "Stiff Arm Drill", "category": "WEAPON UPGRADE"})
+		options.append({"id": "stiff_arm_cooldown", "label": "Fast Hands", "category": "WEAPON UPGRADE"})
 	return options
+
+func _format_upgrade_option(option: Dictionary) -> String:
+	var upgrade_id := str(option["id"])
+	match upgrade_id:
+		"tackle_unlock":
+			return "WEAPON UNLOCK\nTackle Burst  |  LOCKED -> UNLOCKED\nRadius damage: %d" % int(tackle_weapon.damage)
+		"hail_mary_unlock":
+			return "WEAPON UNLOCK\nHail Mary  |  LOCKED -> UNLOCKED\nShot damage: %d" % int(hail_mary_weapon.projectile_damage)
+		"stiff_arm_unlock":
+			return "WEAPON UNLOCK\nStiff Arm  |  LOCKED -> UNLOCKED\nArc damage: %d" % int(stiff_arm.damage)
+		"football_damage":
+			return "PLAYER STAT\nFootball power  |  %d -> %d damage" % [int(auto_weapon.projectile_damage), int(auto_weapon.projectile_damage + 8.0)]
+		"attack_cooldown":
+			return "PLAYER STAT\nFootball snap  |  %.2fs -> %.2fs cooldown" % [auto_weapon.fire_interval, maxf(auto_weapon.fire_interval - 0.12, 0.2)]
+		"projectile_speed":
+			return "PLAYER STAT\nFootball range  |  %d -> %d speed" % [int(auto_weapon.projectile_speed), int(auto_weapon.projectile_speed + 80.0)]
+		"max_health":
+			return "PLAYER STAT\nGoal line health  |  %d -> %d max" % [int(player.max_health), int(player.max_health + 20.0)]
+		"movement_speed":
+			return "PLAYER STAT\nOpen field speed  |  %d -> %d" % [int(player.speed), int(player.speed + 30.0)]
+		"tackle_damage":
+			return "WEAPON UPGRADE\nTackle Burst  |  %d -> %d damage" % [int(tackle_weapon.damage), int(tackle_weapon.damage + 10.0)]
+		"tackle_cooldown":
+			return "WEAPON UPGRADE\nTackle Burst  |  %.2fs -> %.2fs cooldown" % [tackle_weapon.cooldown, maxf(tackle_weapon.cooldown - 0.3, 0.8)]
+		"hail_mary_damage":
+			return "WEAPON UPGRADE\nHail Mary  |  %d -> %d damage" % [int(hail_mary_weapon.projectile_damage), int(hail_mary_weapon.projectile_damage + 20.0)]
+		"hail_mary_cooldown":
+			return "WEAPON UPGRADE\nHail Mary  |  %.2fs -> %.2fs cooldown" % [hail_mary_weapon.cooldown, maxf(hail_mary_weapon.cooldown - 0.5, 1.2)]
+		"stiff_arm_damage":
+			return "WEAPON UPGRADE\nStiff Arm  |  %d -> %d damage" % [int(stiff_arm.damage), int(stiff_arm.damage + 10.0)]
+		"stiff_arm_cooldown":
+			return "WEAPON UPGRADE\nStiff Arm  |  %.2fs -> %.2fs cooldown" % [stiff_arm.cooldown, maxf(stiff_arm.cooldown - 0.25, 0.7)]
+	return "PLAYER STAT\n%s" % option["label"]
 
 func _on_upgrade_selected(button_index: int) -> void:
 	var upgrade_id: String = upgrade_buttons[button_index].get_meta("upgrade_id", "")
 	if upgrade_id.is_empty():
 		return
 	player.apply_upgrade(upgrade_id)
+	_refresh_loadout_hud()
 	upgrade_panel.visible = false
 	get_tree().paused = false
 
@@ -250,8 +292,21 @@ func _start_run() -> void:
 	tackle_weapon.set_process(player.tackle_unlocked)
 	hail_mary_weapon.set_process(player.hail_mary_unlocked)
 	stiff_arm.set_process(player.stiff_arm_unlocked)
+	_refresh_loadout_hud()
 	enemy_spawner.set_process(true)
 	get_tree().paused = false
+
+func _refresh_loadout_hud() -> void:
+	if not is_instance_valid(loadout_label):
+		return
+	var tackle_state := "READY" if player.tackle_unlocked else "LOCKED"
+	var hail_state := "READY" if player.hail_mary_unlocked else "LOCKED"
+	var stiff_state := "READY" if player.stiff_arm_unlocked else "LOCKED"
+	loadout_label.text = "LOADOUT\n" \
+		+ "Football   %d dmg / %.2fs\n" % [int(auto_weapon.projectile_damage), auto_weapon.fire_interval] \
+		+ "Tackle Burst  [%s]  %d / %.2fs\n" % [tackle_state, int(tackle_weapon.damage), tackle_weapon.cooldown] \
+		+ "Hail Mary  [%s]  %d / %.2fs\n" % [hail_state, int(hail_mary_weapon.projectile_damage), hail_mary_weapon.cooldown] \
+		+ "Stiff Arm  [%s]  %d / %.2fs" % [stiff_state, int(stiff_arm.damage), stiff_arm.cooldown]
 
 func _on_player_died() -> void:
 	run_finished = true

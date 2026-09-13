@@ -451,6 +451,24 @@ theme_override_colors/font_color = Color(0.7, 1, 0.75, 1)
 text = "DRIVE XP  |  Level 1  |  0 / 5"
 vertical_alignment = 1
 
+[node name="LoadoutPanel" type="Panel" parent="HUD"]
+offset_left = 892.0
+offset_top = 20.0
+offset_right = 1132.0
+offset_bottom = 164.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_info")
+
+[node name="LoadoutLabel" type="Label" parent="HUD/LoadoutPanel"]
+offset_left = 10.0
+offset_top = 8.0
+offset_right = 230.0
+offset_bottom = 138.0
+theme_override_colors/font_color = Color(0.82, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "LOADOUT\nFootball   20 dmg / 0.80s\nTackle Burst  [LOCKED]\nHail Mary  [LOCKED]\nStiff Arm  [LOCKED]"
+vertical_alignment = 1
+
 [node name="UpgradePanel" type="Panel" parent="HUD"]
 visible = false
 process_mode = 3
