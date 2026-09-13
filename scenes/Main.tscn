@@ -1,10 +1,11 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://scenes/Enemy.tscn" id="2_enemy"]
 [ext_resource type="PackedScene" path="res://scenes/Runner.tscn" id="5_runner"]
 [ext_resource type="PackedScene" path="res://scenes/Thrower.tscn" id="6_thrower"]
 [ext_resource type="PackedScene" path="res://scenes/Blocker.tscn" id="7_blocker"]
+[ext_resource type="PackedScene" path="res://scenes/Coach.tscn" id="8_coach"]
 [ext_resource type="Script" path="res://scripts/enemy_spawner.gd" id="3_spawner"]
 [ext_resource type="Script" path="res://scripts/main.gd" id="4_main"]
 
@@ -177,6 +178,7 @@ enemy_scene = ExtResource("2_enemy")
 runner_scene = ExtResource("5_runner")
 thrower_scene = ExtResource("6_thrower")
 blocker_scene = ExtResource("7_blocker")
+coach_scene = ExtResource("8_coach")
 
 [node name="Instructions" type="Panel" parent="."]
 offset_left = -548.0

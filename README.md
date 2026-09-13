@@ -6,7 +6,7 @@ Football Survivation is a Godot 4 project foundation for a top-down survival gam
 
 ## Project status
 
-The current foundation provides a playable arena, a reusable player scene, an automatic football weapon, and a structured five-minute survival run. The current enemy roster is Defender, fast Runner, ranged Thrower, and durable Blocker. Throwers maintain distance and launch slow footballs at the player; Blockers push the player on contact. All roles share the same enemy health, damage, XP, hit-flash, and death-burst behavior, while pressure gradually introduces the tactical roles. Collected XP raises the player's level and pauses the game for an upgrade choice. Reach the five-minute target for victory; player health reaching zero remains a distinct game-over state.
+The current foundation provides a playable arena, a reusable player scene, an automatic football weapon, and a structured five-minute survival run. The current enemy roster is Defender, fast Runner, ranged Thrower, durable Blocker, and support Coach. Throwers maintain distance and launch slow footballs at the player; Blockers push the player on contact; Coaches maintain distance and periodically buff nearby enemies inside a visible support radius. All roles share the same enemy health, damage, XP, hit-flash, and death-burst behavior, while pressure gradually introduces the tactical roles. Collected XP raises the player's level and pauses the game for an upgrade choice. Reach the five-minute target for victory; player health reaching zero remains a distinct game-over state.
 
 ## Open and run
 
@@ -35,6 +35,7 @@ The command should exit successfully only when the project and its scripts/scene
 - `scenes/Runner.tscn`: fast/light enemy archetype using the shared enemy script
 - `scenes/Thrower.tscn`: preferred-distance ranged enemy role
 - `scenes/Blocker.tscn`: durable space-control enemy role
+- `scenes/Coach.tscn`: support enemy role with a bounded buff radius
 - `scenes/EnemyFootball.tscn`: enemy-only projectile scene
 - `scenes/Football.tscn`: reusable football projectile scene
 - `scenes/ExperiencePickup.tscn`: reusable collectible XP scene
@@ -57,7 +58,7 @@ Movement supports all eight directions and is normalized so diagonal movement is
 
 Defenders appear around the arena perimeter and damage the player on contact. Fast runners begin joining the waves as survival pressure rises; they move faster but have lower health and contact damage. Player health is displayed in the top-left HUD; the game-over panel appears when health reaches zero.
 
-Throwers maintain a preferred distance and periodically launch enemy footballs; Blockers are larger and push the player away on contact. Enemy projectiles only damage the player, never enemies or player-owned weapons. Coach and Referee roles are not implemented yet.
+Throwers maintain a preferred distance and periodically launch enemy footballs; Blockers are larger and push the player away on contact; Coaches periodically refresh bounded speed/contact-damage buffs on nearby enemies and remove their buffs when defeated. Enemy projectiles only damage the player, never enemies or player-owned weapons. Referee roles are not implemented yet.
 
 The player automatically throws footballs at nearby enemies. Level-ups can unlock three additional weapons: **Tackle Burst** damages all nearby enemies with a close-range radius flash, **Hail Mary** launches a slow high-impact long-range shot, and **Stiff Arm** sweeps a short melee arc. Each weapon has its own cooldown and damage upgrades, and each unlock can only be selected once. No additional input is required; projectiles disappear after hitting an enemy or reaching their lifetime.
 
