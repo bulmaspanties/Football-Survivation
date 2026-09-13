@@ -89,7 +89,7 @@ func apply_upgrade(upgrade_id: String) -> void:
 		"tackle_unlock":
 			if not tackle_unlocked:
 				tackle_unlocked = true
-				tackle.unlock()
+				tackle.activate()
 		"tackle_damage":
 			if tackle_unlocked:
 				tackle.upgrade_damage(10.0)
@@ -99,7 +99,7 @@ func apply_upgrade(upgrade_id: String) -> void:
 		"hail_mary_unlock":
 			if not hail_mary_unlocked:
 				hail_mary_unlocked = true
-				hail_mary.unlock()
+				hail_mary.activate()
 		"hail_mary_damage":
 			if hail_mary_unlocked:
 				hail_mary.upgrade_damage(20.0)
@@ -109,7 +109,7 @@ func apply_upgrade(upgrade_id: String) -> void:
 		"stiff_arm_unlock":
 			if not stiff_arm_unlocked:
 				stiff_arm_unlocked = true
-				stiff_arm.unlock()
+				stiff_arm.activate()
 		"stiff_arm_damage":
 			if stiff_arm_unlocked:
 				stiff_arm.upgrade_damage(10.0)

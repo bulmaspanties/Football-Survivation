@@ -16,7 +16,7 @@ func _ready() -> void:
 	set_process(false)
 
 func _process(delta: float) -> void:
-	if not is_instance_valid(_player) or _player.health <= 0.0:
+	if not unlocked or not is_instance_valid(_player) or _player.health <= 0.0:
 		return
 	_cooldown_remaining = maxf(_cooldown_remaining - delta, 0.0)
 	if _cooldown_remaining > 0.0:
@@ -48,6 +48,10 @@ func _nearest_enemy() -> Enemy:
 	return nearest
 
 func unlock() -> void:
+	unlocked = true
+	set_process(true)
+
+func activate() -> void:
 	unlocked = true
 	set_process(true)
 

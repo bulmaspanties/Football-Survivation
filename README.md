@@ -56,7 +56,7 @@ The command should exit successfully only when the project and its scripts/scene
 - **D / Right Arrow**: move right
 - **Escape / P**: pause or resume during an active run
 
-Controller support uses the left stick for movement, with the same 0.2 deadzone and normalized eight-direction movement. The controller Menu/Start button pauses or resumes an active run. Standard menu navigation uses the directional pad/stick and A; Enter/Space remain keyboard activation, and focus begins on the first available action for each title, profile, front-office, pause/settings, level-up, victory, and game-over overlay.
+Controller support uses the left stick for movement, with the same 0.2 deadzone and normalized eight-direction movement. The controller Menu/Start button pauses or resumes an active run; A/Cross accepts focused controls and B/Circle cancels or backs out. Standard menu navigation uses the directional pad/stick; Enter/Space remain keyboard activation, and focus begins on the first available action for each title, profile, front-office, pause/settings, level-up, victory, and game-over overlay. The active field shows a compact controls hint briefly at kickoff and the start of each run, then fades so it does not cover the HUD.
 
 The pause menu provides Resume, Restart Run, Return to Title, Profile Selection, and Settings controls. Escape/P only pauses an active run; level-up, title, victory, and game-over overlays keep their existing behavior. Settings include a session-persistent master volume slider, mute toggle, fullscreen/windowed toggle, and reset button. Settings remain active while navigating or restarting within the current Godot session.
 

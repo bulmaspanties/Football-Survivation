@@ -12,6 +12,7 @@ const HALFTIME_WARNING_SECONDS := 3.0
 @onready var boss_status: Label = $HUD/BossStatus
 @onready var wave_status: Label = $HUD/WaveStatus
 @onready var loadout_label: Label = $HUD/LoadoutPanel/LoadoutLabel
+@onready var controls_hint: Label = $HUD/ControlsHint
 @onready var upgrade_panel: Panel = $HUD/UpgradePanel
 @onready var upgrade_title: Label = $HUD/UpgradePanel/UpgradeTitle
 @onready var upgrade_buttons: Array[Button] = [
@@ -116,6 +117,7 @@ func _ready() -> void:
 	enemy_spawner.set_process(false)
 	get_tree().paused = true
 	call_deferred("_focus_front_overlay")
+	_show_controls_hint()
 
 func _configure_focus() -> void:
 	_set_vertical_focus([
@@ -388,12 +390,32 @@ func _start_run() -> void:
 	wave_status.visible = false
 	player.set_physics_process(true)
 	auto_weapon.set_process(true)
-	tackle_weapon.set_process(player.tackle_unlocked)
-	hail_mary_weapon.set_process(player.hail_mary_unlocked)
-	stiff_arm.set_process(player.stiff_arm_unlocked)
+	if player.tackle_unlocked:
+		tackle_weapon.activate()
+	else:
+		tackle_weapon.set_process(false)
+	if player.hail_mary_unlocked:
+		hail_mary_weapon.activate()
+	else:
+		hail_mary_weapon.set_process(false)
+	if player.stiff_arm_unlocked:
+		stiff_arm.activate()
+	else:
+		stiff_arm.set_process(false)
 	_refresh_loadout_hud()
+	_show_controls_hint()
 	enemy_spawner.set_process(true)
 	get_tree().paused = false
+
+func _show_controls_hint() -> void:
+	if not is_instance_valid(controls_hint):
+		return
+	controls_hint.modulate = Color.WHITE
+	controls_hint.visible = true
+	var tween := create_tween()
+	tween.tween_interval(3.0)
+	tween.tween_property(controls_hint, "modulate:a", 0.0, 1.0)
+	tween.tween_callback(controls_hint.hide)
 
 func _refresh_loadout_hud() -> void:
 	if not is_instance_valid(loadout_label):

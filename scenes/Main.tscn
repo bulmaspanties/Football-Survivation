@@ -262,6 +262,7 @@ coach_scene = ExtResource("8_coach")
 boss_scene = ExtResource("10_boss")
 
 [node name="Instructions" type="Panel" parent="."]
+visible = false
 offset_left = -548.0
 offset_top = -288.0
 offset_right = -288.0
@@ -279,6 +280,18 @@ text = "MOVE  WASD / ARROWS\nDRIVE  5:00"
 vertical_alignment = 1
 
 [node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="ControlsHint" type="Label" parent="HUD"]
+process_mode = 3
+offset_left = 20.0
+offset_top = 596.0
+offset_right = 560.0
+offset_bottom = 630.0
+theme_override_colors/font_color = Color(0.78, 0.88, 0.94, 0.95)
+theme_override_font_sizes/font_size = 13
+text = "MOVE  WASD / ARROWS / LEFT STICK   |   PAUSE  ESC / P / MENU   |   SELECT  ENTER / A"
+vertical_alignment = 1
+visible = false
 
 [node name="TitlePanel" type="Panel" parent="HUD"]
 process_mode = 3
