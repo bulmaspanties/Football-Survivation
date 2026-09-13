@@ -59,15 +59,33 @@ func _load_profiles() -> void:
 		push_error("Unable to open profile save file; using empty slots.")
 		return
 	var parsed = JSON.parse_string(file.get_as_text())
-	if not (parsed is Dictionary) or not (parsed.has("slots") and parsed["slots"] is Array):
+	if not (parsed is Dictionary) or int(parsed.get("schema_version", 0)) != 1 or not (parsed.has("slots") and parsed["slots"] is Array):
 		push_error("Profile save is invalid; using empty slots.")
 		return
 	var slots: Array = parsed["slots"]
 	for index in min(slots.size(), SLOT_COUNT):
 		if slots[index] is Dictionary and int(slots[index].get("schema_version", 0)) == 1:
-			profiles[index] = slots[index]
+			var normalized := _normalize_profile(slots[index])
+			if normalized.is_empty():
+				push_error("Profile slot %d is invalid; leaving it empty." % (index + 1))
+			else:
+				profiles[index] = normalized
 		else:
 			push_error("Profile slot %d is invalid; leaving it empty." % (index + 1))
+
+func _normalize_profile(raw: Dictionary) -> Dictionary:
+	var created = raw.get("created", "")
+	var last_played = raw.get("last_played", "Never")
+	var currency = raw.get("permanent_currency", 0)
+	var unlocks = raw.get("unlocks", [])
+	if not (created is String and last_played is String and currency is int and unlocks is Array):
+		return {}
+	var normalized := _new_profile()
+	normalized["created"] = created
+	normalized["last_played"] = last_played
+	normalized["permanent_currency"] = max(currency, 0)
+	normalized["unlocks"] = unlocks.duplicate()
+	return normalized
 
 func _save_profiles() -> void:
 	var file := FileAccess.open(PROFILE_PATH, FileAccess.WRITE)
