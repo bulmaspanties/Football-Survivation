@@ -19,6 +19,8 @@ corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
 
 [node name="Player" type="CharacterBody2D"]
+collision_layer = 1
+collision_mask = 3
 script = ExtResource("1_player")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
@@ -33,5 +35,6 @@ mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_player")
 
 [node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(1.25, 1.25)
 position_smoothing_enabled = true
 position_smoothing_speed = 6.0
