@@ -17,6 +17,7 @@ var experience_to_next_level := 5
 var tackle_unlocked := false
 var hail_mary_unlocked := false
 var stiff_arm_unlocked := false
+var _knockback_velocity := Vector2.ZERO
 var _damage_cooldown_remaining := 0.0
 
 func _ready() -> void:
@@ -28,7 +29,8 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	_damage_cooldown_remaining = maxf(_damage_cooldown_remaining - delta, 0.0)
 	var input_vector := Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	velocity = input_vector * speed
+	_knockback_velocity = _knockback_velocity.move_toward(Vector2.ZERO, 900.0 * delta)
+	velocity = input_vector * speed + _knockback_velocity
 	move_and_slide()
 
 func take_damage(amount: float) -> void:
@@ -41,6 +43,10 @@ func take_damage(amount: float) -> void:
 		velocity = Vector2.ZERO
 		set_physics_process(false)
 		died.emit()
+
+func apply_knockback(force: Vector2) -> void:
+	if health > 0.0:
+		_knockback_velocity += force
 
 func collect_experience(amount: int) -> void:
 	if amount <= 0 or health <= 0.0:

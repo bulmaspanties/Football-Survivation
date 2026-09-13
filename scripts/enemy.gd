@@ -9,11 +9,19 @@ extends CharacterBody2D
 @export var experience_reward := 2
 @export var experience_scene: PackedScene
 @export var death_burst_scene: PackedScene
+@export_enum("defender", "thrower", "blocker") var role := "defender"
+@export var preferred_distance := 260.0
+@export var ranged_cooldown := 2.8
+@export var ranged_damage := 12.0
+@export var ranged_projectile_speed := 220.0
+@export var ranged_projectile_scene: PackedScene
+@export var knockback_force := 0.0
 
 var health := max_health
 var _contact_cooldown_remaining := 0.0
 var _target: Player
 var _hit_flash_remaining := 0.0
+var _ranged_cooldown_remaining := 0.0
 @onready var _visual: CanvasItem = $Visual
 
 func _ready() -> void:
@@ -29,18 +37,28 @@ func _physics_process(delta: float) -> void:
 	_hit_flash_remaining = maxf(_hit_flash_remaining - delta, 0.0)
 	_visual.modulate = Color(1.0, 1.0, 1.0, 1.0) if _hit_flash_remaining <= 0.0 else Color(1.0, 0.72, 0.72, 1.0)
 	_contact_cooldown_remaining = maxf(_contact_cooldown_remaining - delta, 0.0)
+	_ranged_cooldown_remaining = maxf(_ranged_cooldown_remaining - delta, 0.0)
 	if not is_instance_valid(_target):
 		_target = get_tree().get_first_node_in_group("player") as Player
 	if not is_instance_valid(_target) or _target.health <= 0.0:
 		velocity = Vector2.ZERO
 		return
 
+	var distance_to_target := global_position.distance_to(_target.global_position)
 	var direction := global_position.direction_to(_target.global_position)
+	if role == "thrower":
+		if distance_to_target < preferred_distance - 24.0:
+			direction = -direction
+		elif distance_to_target <= preferred_distance + 24.0:
+			direction = Vector2.ZERO
+		_throw_at_player()
 	velocity = direction * speed
 	move_and_slide()
 	if global_position.distance_to(_target.global_position) <= contact_range:
 		if _contact_cooldown_remaining <= 0.0:
 			_target.take_damage(contact_damage)
+			if knockback_force > 0.0:
+				_target.apply_knockback(direction * knockback_force)
 			_contact_cooldown_remaining = contact_cooldown
 
 func take_damage(amount: float) -> void:
@@ -53,6 +71,19 @@ func take_damage(amount: float) -> void:
 		queue_free()
 	else:
 		_hit_flash_remaining = 0.1
+
+func _throw_at_player() -> void:
+	if ranged_projectile_scene == null or _ranged_cooldown_remaining > 0.0:
+		return
+	var projectile: EnemyFootball = ranged_projectile_scene.instantiate() as EnemyFootball
+	if projectile == null:
+		return
+	projectile.damage = ranged_damage
+	projectile.speed = ranged_projectile_speed
+	projectile.global_position = global_position
+	get_tree().current_scene.add_child(projectile)
+	projectile.launch(global_position.direction_to(_target.global_position))
+	_ranged_cooldown_remaining = ranged_cooldown
 
 func _drop_experience() -> void:
 	if experience_scene == null or get_parent() == null:

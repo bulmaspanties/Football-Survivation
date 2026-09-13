@@ -1,0 +1,55 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemy.gd" id="1_enemy"]
+[ext_resource type="PackedScene" path="res://scenes/ExperiencePickup.tscn" id="2_experience"]
+[ext_resource type="PackedScene" path="res://scenes/DeathBurst.tscn" id="3_death_burst"]
+[ext_resource type="PackedScene" path="res://scenes/EnemyFootball.tscn" id="4_ball"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_thrower"]
+radius = 15.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_thrower"]
+bg_color = Color(0.62, 0.18, 0.78, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.95, 0.7, 1, 1)
+corner_radius_top_left = 7
+corner_radius_top_right = 7
+corner_radius_bottom_right = 7
+corner_radius_bottom_left = 7
+
+[node name="Thrower" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_enemy")
+role = "thrower"
+speed = 65.0
+max_health = 24.0
+contact_damage = 7.0
+contact_range = 30.0
+experience_reward = 3
+preferred_distance = 290.0
+ranged_cooldown = 2.8
+ranged_damage = 12.0
+ranged_projectile_speed = 220.0
+experience_scene = ExtResource("2_experience")
+death_burst_scene = ExtResource("3_death_burst")
+ranged_projectile_scene = ExtResource("4_ball")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_thrower")
+
+[node name="Visual" type="Panel" parent="."]
+offset_left = -15.0
+offset_top = -15.0
+offset_right = 15.0
+offset_bottom = 15.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_thrower")
+
+[node name="Arm" type="Line2D" parent="."]
+points = PackedVector2Array(8, -9, 17, -17)
+width = 4.0
+default_color = Color(1, 0.8, 0.35, 1)

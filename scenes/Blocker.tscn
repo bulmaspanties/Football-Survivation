@@ -1,0 +1,50 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemy.gd" id="1_enemy"]
+[ext_resource type="PackedScene" path="res://scenes/ExperiencePickup.tscn" id="2_experience"]
+[ext_resource type="PackedScene" path="res://scenes/DeathBurst.tscn" id="3_death_burst"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_blocker"]
+size = Vector2(44, 44)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_blocker"]
+bg_color = Color(0.12, 0.3, 0.72, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.45, 0.75, 1, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="Blocker" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_enemy")
+role = "blocker"
+speed = 55.0
+max_health = 90.0
+contact_damage = 14.0
+contact_range = 42.0
+contact_cooldown = 1.0
+knockback_force = 420.0
+experience_reward = 5
+experience_scene = ExtResource("2_experience")
+death_burst_scene = ExtResource("3_death_burst")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_blocker")
+
+[node name="Visual" type="Panel" parent="."]
+offset_left = -22.0
+offset_top = -22.0
+offset_right = 22.0
+offset_bottom = 22.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_blocker")
+
+[node name="Shield" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-24, -10, -14, -22, 14, -22, 24, -10, 24, 10, 14, 22, -14, 22, -24, 10)
+color = Color(0.45, 0.82, 1, 0.9)
