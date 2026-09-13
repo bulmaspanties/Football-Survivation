@@ -13,3 +13,9 @@ Thumbs.db
 
 # Local export configuration
 export.cfg
+
+# Exported binaries and packages
+builds/
+*.x86_64
+*.exe
+*.pck

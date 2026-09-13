@@ -1,0 +1,95 @@
+name: Godot export and build
+
+on:
+  push:
+    branches:
+      - main
+      - bulmaspanties-godot-foundation
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  export:
+    name: Build desktop exports
+    runs-on: ubuntu-22.04
+    env:
+      GODOT_VERSION: 4.3
+      GODOT_ARCHIVE: Godot_v4.3-stable_linux.x86_64.zip
+      GODOT_SHA256: 7de56444b130b10af84d19c7e0cf63cf9e9937ee4ba94364c3b7dd114253ca21
+      TEMPLATES_ARCHIVE: Godot_v4.3-stable_export_templates.tpz
+      TEMPLATES_SHA256: f5f10dbaf56a7908349e64b94ea8c2c93c2cc11fb1014c9565b68a2bb437b922
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Download and verify Godot editor & export templates
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Download and verify Godot 4.3 headless binary
+          curl --fail --location --retry 3 \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/${GODOT_ARCHIVE}" \
+            --output "${RUNNER_TEMP}/${GODOT_ARCHIVE}"
+          echo "${GODOT_SHA256}  ${RUNNER_TEMP}/${GODOT_ARCHIVE}" | sha256sum --check
+          unzip -q "${RUNNER_TEMP}/${GODOT_ARCHIVE}" -d "${RUNNER_TEMP}/godot"
+          find "${RUNNER_TEMP}/godot" -type f -name 'Godot_*_linux.x86_64' -exec cp {} "${RUNNER_TEMP}/godot-headless" \;
+          chmod +x "${RUNNER_TEMP}/godot-headless"
+
+          # Download and verify Godot 4.3 official export templates
+          curl --fail --location --retry 3 \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/${TEMPLATES_ARCHIVE}" \
+            --output "${RUNNER_TEMP}/${TEMPLATES_ARCHIVE}"
+          echo "${TEMPLATES_SHA256}  ${RUNNER_TEMP}/${TEMPLATES_ARCHIVE}" | sha256sum --check
+
+          # Install export templates to standard Godot location
+          mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          unzip -q "${RUNNER_TEMP}/${TEMPLATES_ARCHIVE}" -d "${RUNNER_TEMP}/templates_extract"
+          cp -r "${RUNNER_TEMP}/templates_extract/templates/"* ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/
+
+      - name: Import and parse project
+        shell: bash
+        run: |
+          set -o pipefail
+          set +e
+          "${RUNNER_TEMP}/godot-headless" --headless --editor --path . --quit 2>&1 | tee "${RUNNER_TEMP}/godot.log"
+          godot_status=${PIPESTATUS[0]}
+          set -e
+          if [ "${godot_status}" -ne 0 ]; then
+            exit "${godot_status}"
+          fi
+          if grep -Eq 'Parse Error|SCRIPT ERROR|Failed to load script|Couldn.t load project' "${RUNNER_TEMP}/godot.log"; then
+            echo "Godot reported a script or project parse/load error."
+            exit 1
+          fi
+
+      - name: Export Linux build
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p builds/linux
+          "${RUNNER_TEMP}/godot-headless" --headless --path . --export-release "Linux/X11" builds/linux/football_survivation.x86_64
+          ls -la builds/linux/
+
+      - name: Export Windows build
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p builds/windows
+          "${RUNNER_TEMP}/godot-headless" --headless --path . --export-release "Windows Desktop" builds/windows/football_survivation.exe
+          ls -la builds/windows/
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: football-survivation-linux-x86_64
+          path: builds/linux/
+          if-no-files-found: error
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: football-survivation-windows-x86_64
+          path: builds/windows/
+          if-no-files-found: error

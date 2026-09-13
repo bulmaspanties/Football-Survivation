@@ -16,9 +16,37 @@ The current foundation provides a playable arena, a reusable player scene, an au
 
 The project opens on a built-in kickoff screen with franchise selection and a short controls/objective guide. After starting, the scene is a football-field arena with green turf, end zones, yard lines, midfield markings, goalposts, sideline accents, lightweight crowd silhouettes, a scoreboard-style HUD, a player character, and a following camera. It uses only built-in Godot nodes, drawing primitives, and shapes, so no asset setup is required. Players, opponents, pickups, and footballs use distinct placeholder colors and silhouettes; enemy hits flash and defeated enemies emit a brief burst.
 
-## Validation
+## Validation and continuous integration
 
-The repository runs a pinned Godot 4.3 headless import/parser check on every push and pull request through [`.github/workflows/godot-check.yml`](.github/workflows/godot-check.yml). To run the same check locally, install Godot 4.3 and execute:
+The repository validates and builds the project via GitHub Actions:
+
+- **Headless validation** ([`.github/workflows/godot-check.yml`](.github/workflows/godot-check.yml)): runs on every push and pull request, downloading the pinned Godot 4.3 binary and verifying that all scenes and scripts import and parse cleanly without errors.
+- **Export and build pipeline** ([`.github/workflows/export-builds.yml`](.github/workflows/export-builds.yml)): runs on pushes to `main` and feature branches, tag releases (`v*`), or via manual workflow dispatch. It verifies the pinned Godot 4.3 editor and official export templates via SHA-256 checksums, imports the project, compiles release packages for **Linux x86_64** and **Windows Desktop (x86_64)**, and publishes them as downloadable workflow artifacts:
+  - `football-survivation-linux-x86_64` (contains `football_survivation.x86_64` and `football_survivation.pck`)
+  - `football-survivation-windows-x86_64` (contains `football_survivation.exe` and `football_survivation.pck`)
+
+To download builds, navigate to the **Actions** tab on GitHub, select the latest **Godot export and build** run, and scroll to the **Artifacts** section.
+
+### Local export instructions
+
+To export desktop binaries locally using the Godot CLI:
+
+1. Install Godot 4.3 and the official Godot 4.3 export templates (`Godot_v4.3-stable_export_templates.tpz`).
+2. Run the export command for your target platform:
+
+```sh
+# Export Linux x86_64 binary
+mkdir -p builds/linux
+godot --headless --path . --export-release "Linux/X11" builds/linux/football_survivation.x86_64
+
+# Export Windows Desktop (x86_64) binary
+mkdir -p builds/windows
+godot --headless --path . --export-release "Windows Desktop" builds/windows/football_survivation.exe
+```
+
+> **Note on Windows export from Linux:** The Windows preset has `application/modify_resources=false` configured to avoid requiring external PE resource modification tools (such as `rcedit` / `rcodesign`) when building Windows executables in headless Linux environments.
+
+To run the static validation check locally:
 
 ```sh
 godot --headless --editor --path . --quit
