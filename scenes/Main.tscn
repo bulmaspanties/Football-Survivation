@@ -1,0 +1,77 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1_player"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_horizontal"]
+size = Vector2(1120, 24)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vertical"]
+size = Vector2(24, 600)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_info"]
+bg_color = Color(0.07, 0.11, 0.18, 0.92)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.19, 0.29, 0.42, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="Main" type="Node2D"]
+
+[node name="Arena" type="Node2D" parent="."]
+
+[node name="Floor" type="Polygon2D" parent="Arena"]
+polygon = PackedVector2Array(-560, -300, 560, -300, 560, 300, -560, 300)
+color = Color(0.08, 0.28, 0.2, 1)
+
+[node name="CenterMark" type="Polygon2D" parent="Arena"]
+polygon = PackedVector2Array(-2, -300, 2, -300, 2, 300, -2, 300)
+color = Color(0.14, 0.42, 0.3, 1)
+
+[node name="TopBoundary" type="StaticBody2D" parent="Arena"]
+position = Vector2(0, -312)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Arena/TopBoundary"]
+shape = SubResource("RectangleShape2D_horizontal")
+
+[node name="BottomBoundary" type="StaticBody2D" parent="Arena"]
+position = Vector2(0, 312)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Arena/BottomBoundary"]
+shape = SubResource("RectangleShape2D_horizontal")
+
+[node name="LeftBoundary" type="StaticBody2D" parent="Arena"]
+position = Vector2(-572, 0)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Arena/LeftBoundary"]
+shape = SubResource("RectangleShape2D_vertical")
+
+[node name="RightBoundary" type="StaticBody2D" parent="Arena"]
+position = Vector2(572, 0)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Arena/RightBoundary"]
+shape = SubResource("RectangleShape2D_vertical")
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+position = Vector2(0, 0)
+
+[node name="Instructions" type="Panel" parent="."]
+offset_left = -548.0
+offset_top = -288.0
+offset_right = -288.0
+offset_bottom = -224.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_info")
+
+[node name="Label" type="Label" parent="Instructions"]
+offset_left = 12.0
+offset_top = 10.0
+offset_right = 248.0
+offset_bottom = 54.0
+theme_override_colors/font_color = Color(0.82, 0.9, 0.96, 1)
+text = "Move: WASD / Arrow Keys"
+vertical_alignment = 1
