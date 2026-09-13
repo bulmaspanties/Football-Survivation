@@ -15,6 +15,8 @@ var experience := 0
 var level := 1
 var experience_to_next_level := 5
 var tackle_unlocked := false
+var hail_mary_unlocked := false
+var stiff_arm_unlocked := false
 var _damage_cooldown_remaining := 0.0
 
 func _ready() -> void:
@@ -54,6 +56,8 @@ func collect_experience(amount: int) -> void:
 func apply_upgrade(upgrade_id: String) -> void:
 	var weapon := $AutoWeapon as AutoWeapon
 	var tackle := $TackleWeapon as TackleWeapon
+	var hail_mary := $HailMaryWeapon as HailMaryWeapon
+	var stiff_arm := $StiffArm as StiffArm
 	match upgrade_id:
 		"football_damage":
 			weapon.upgrade_damage(8.0)
@@ -77,3 +81,23 @@ func apply_upgrade(upgrade_id: String) -> void:
 		"tackle_cooldown":
 			if tackle_unlocked:
 				tackle.upgrade_cooldown(0.3)
+		"hail_mary_unlock":
+			if not hail_mary_unlocked:
+				hail_mary_unlocked = true
+				hail_mary.unlock()
+		"hail_mary_damage":
+			if hail_mary_unlocked:
+				hail_mary.upgrade_damage(20.0)
+		"hail_mary_cooldown":
+			if hail_mary_unlocked:
+				hail_mary.upgrade_cooldown(0.5)
+		"stiff_arm_unlock":
+			if not stiff_arm_unlocked:
+				stiff_arm_unlocked = true
+				stiff_arm.unlock()
+		"stiff_arm_damage":
+			if stiff_arm_unlocked:
+				stiff_arm.upgrade_damage(10.0)
+		"stiff_arm_cooldown":
+			if stiff_arm_unlocked:
+				stiff_arm.upgrade_cooldown(0.25)

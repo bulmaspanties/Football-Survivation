@@ -1,0 +1,25 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/hail_mary.gd" id="1_hail"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hail"]
+radius = 10.0
+
+[node name="HailMary" type="Area2D"]
+collision_layer = 16
+collision_mask = 2
+monitoring = true
+monitorable = false
+script = ExtResource("1_hail")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_hail")
+
+[node name="Visual" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-13, -7, -5, -11, 7, -8, 13, 0, 7, 8, -5, 11, -13, 7, -16, 0)
+color = Color(0.88, 0.95, 1, 1)
+
+[node name="Trail" type="Line2D" parent="."]
+points = PackedVector2Array(-22, 0, -8, 0)
+width = 4.0
+default_color = Color(0.28, 0.72, 1, 0.9)

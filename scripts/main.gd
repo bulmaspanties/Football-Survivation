@@ -20,6 +20,8 @@ const ESCALATION_START_SECONDS := 30.0
 @onready var title_panel: Panel = $HUD/TitlePanel
 @onready var auto_weapon: AutoWeapon = $Player/AutoWeapon
 @onready var tackle_weapon: TackleWeapon = $Player/TackleWeapon
+@onready var hail_mary_weapon: HailMaryWeapon = $Player/HailMaryWeapon
+@onready var stiff_arm: StiffArm = $Player/StiffArm
 
 var survival_time := 0.0
 var run_finished := false
@@ -27,6 +29,8 @@ var run_started := false
 
 const UPGRADE_OPTIONS := [
 	{"id": "tackle_unlock", "label": "Unlock Tackle Burst (close-range damage)", "category": "weapon"},
+	{"id": "hail_mary_unlock", "label": "Unlock Hail Mary (long-range power shot)", "category": "weapon"},
+	{"id": "stiff_arm_unlock", "label": "Unlock Stiff Arm (melee arc)", "category": "weapon"},
 	{"id": "football_damage", "label": "Powerful kicks (+8 football damage)"},
 	{"id": "attack_cooldown", "label": "Quick feet (fire 0.12s faster)"},
 	{"id": "projectile_speed", "label": "Long pass (+80 football speed)"},
@@ -47,6 +51,8 @@ func _ready() -> void:
 	player.set_physics_process(false)
 	auto_weapon.set_process(false)
 	tackle_weapon.set_process(false)
+	hail_mary_weapon.set_process(false)
+	stiff_arm.set_process(false)
 	enemy_spawner.set_process(false)
 	get_tree().paused = true
 
@@ -90,6 +96,12 @@ func _available_upgrade_options() -> Array[Dictionary]:
 	if player.tackle_unlocked:
 		options.append({"id": "tackle_damage", "label": "Tackle training (+10 burst damage)", "category": "weapon"})
 		options.append({"id": "tackle_cooldown", "label": "Fast tackle (-0.3s burst cooldown)", "category": "weapon"})
+	if player.hail_mary_unlocked:
+		options.append({"id": "hail_mary_damage", "label": "Hail Mary power (+20 shot damage)", "category": "weapon"})
+		options.append({"id": "hail_mary_cooldown", "label": "Quick release (-0.5s Hail Mary cooldown)", "category": "weapon"})
+	if player.stiff_arm_unlocked:
+		options.append({"id": "stiff_arm_damage", "label": "Stronger stiff arm (+10 arc damage)", "category": "weapon"})
+		options.append({"id": "stiff_arm_cooldown", "label": "Fast hands (-0.25s stiff arm cooldown)", "category": "weapon"})
 	return options
 
 func _on_upgrade_selected(button_index: int) -> void:
@@ -111,6 +123,8 @@ func _start_run() -> void:
 	player.set_physics_process(true)
 	auto_weapon.set_process(true)
 	tackle_weapon.set_process(player.tackle_unlocked)
+	hail_mary_weapon.set_process(player.hail_mary_unlocked)
+	stiff_arm.set_process(player.stiff_arm_unlocked)
 	enemy_spawner.set_process(true)
 	get_tree().paused = false
 

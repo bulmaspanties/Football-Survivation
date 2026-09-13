@@ -1,9 +1,11 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/player.gd" id="1_player"]
 [ext_resource type="PackedScene" path="res://scenes/Football.tscn" id="2_football"]
 [ext_resource type="Script" path="res://scripts/auto_weapon.gd" id="3_auto_weapon"]
 [ext_resource type="PackedScene" path="res://scenes/TackleWeapon.tscn" id="4_tackle"]
+[ext_resource type="PackedScene" path="res://scenes/HailMaryWeapon.tscn" id="5_hail_weapon"]
+[ext_resource type="PackedScene" path="res://scenes/StiffArm.tscn" id="6_stiff_arm"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_player"]
 radius = 18.0
@@ -55,3 +57,7 @@ script = ExtResource("3_auto_weapon")
 projectile_scene = ExtResource("2_football")
 
 [node name="TackleWeapon" parent="." instance=ExtResource("4_tackle")]
+
+[node name="HailMaryWeapon" parent="." instance=ExtResource("5_hail_weapon")]
+
+[node name="StiffArm" parent="." instance=ExtResource("6_stiff_arm")]
