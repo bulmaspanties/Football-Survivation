@@ -73,6 +73,8 @@ Enemies drop green experience pickups. Collect enough to level up, then choose o
 
 Each run displays elapsed survival time and escalates enemy pressure after the opening period. Victory and game over both offer a restart button.
 
+At 2:30, a one-time halftime event announces and spawns an Elite outside the field boundary while normal spawns continue under their cap. The Elite is larger, slower, much tougher, deals bounded contact damage, and drops 25 XP. Defeating it grants the selected profile a one-time 50-coin bonus and updates the HUD; the bonus cannot repeat from duplicate damage or terminal transitions.
+
 Starting or restarting a run creates a fresh player progression state and clears all active gameplay nodes before the timer begins.
 
 ## Development notes

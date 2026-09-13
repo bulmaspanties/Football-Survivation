@@ -6,6 +6,7 @@ extends Node2D
 @export var thrower_scene: PackedScene
 @export var blocker_scene: PackedScene
 @export var coach_scene: PackedScene
+@export var boss_scene: PackedScene
 @export var spawn_interval := 2.5
 @export var max_enemies := 12
 @export var spawn_x := 520.0
@@ -67,6 +68,17 @@ func set_pressure(value: float) -> void:
 	pressure = maxf(value, 1.0)
 	spawn_interval = maxf(2.5 / pressure, 0.65)
 	max_enemies = 12 + int((pressure - 1.0) * 10.0)
+
+func spawn_boss() -> Enemy:
+	if boss_scene == null:
+		return null
+	var boss: Enemy = boss_scene.instantiate() as Enemy
+	if boss == null:
+		return null
+	boss.position = _perimeter_position()
+	boss.add_to_group("enemy")
+	get_parent().add_child(boss)
+	return boss
 
 func _perimeter_position() -> Vector2:
 	var edge := randi() % 4

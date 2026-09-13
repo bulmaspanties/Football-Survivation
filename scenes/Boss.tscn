@@ -1,0 +1,59 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemy.gd" id="1_enemy"]
+[ext_resource type="PackedScene" path="res://scenes/ExperiencePickup.tscn" id="2_experience"]
+[ext_resource type="PackedScene" path="res://scenes/DeathBurst.tscn" id="3_death_burst"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_boss"]
+radius = 30.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_boss"]
+bg_color = Color(0.58, 0.12, 0.18, 1)
+border_width_left = 5
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 5
+border_color = Color(1, 0.82, 0.25, 1)
+corner_radius_top_left = 30
+corner_radius_top_right = 30
+corner_radius_bottom_right = 30
+corner_radius_bottom_left = 30
+
+[node name="Boss" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_enemy")
+role = "boss"
+is_boss = true
+speed = 52.0
+max_health = 900.0
+contact_damage = 18.0
+contact_range = 52.0
+contact_cooldown = 1.1
+experience_reward = 25
+experience_scene = ExtResource("2_experience")
+death_burst_scene = ExtResource("3_death_burst")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_boss")
+
+[node name="Visual" type="Panel" parent="."]
+offset_left = -30.0
+offset_top = -30.0
+offset_right = 30.0
+offset_bottom = 30.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_boss")
+
+[node name="Crown" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-22, -31, -12, -48, 0, -34, 12, -48, 22, -31, 16, -20, -16, -20)
+color = Color(1, 0.82, 0.25, 1)
+
+[node name="Label" type="Label" parent="."]
+offset_left = -46.0
+offset_top = 36.0
+offset_right = 46.0
+offset_bottom = 60.0
+theme_override_colors/font_color = Color(1, 0.9, 0.5, 1)
+text = "ELITE"
+horizontal_alignment = 1

@@ -9,7 +9,9 @@ extends CharacterBody2D
 @export var experience_reward := 2
 @export var experience_scene: PackedScene
 @export var death_burst_scene: PackedScene
-@export_enum("defender", "thrower", "blocker", "support") var role := "defender"
+@export_enum("defender", "thrower", "blocker", "support", "boss") var role := "defender"
+@export var is_boss := false
+@export var boss_coin_reward := 50
 @export var preferred_distance := 260.0
 @export var ranged_cooldown := 2.8
 @export var ranged_damage := 12.0
@@ -78,6 +80,11 @@ func _physics_process(delta: float) -> void:
 		elif distance_to_target <= preferred_distance + 35.0:
 			direction = Vector2.ZERO
 		_support_nearby_enemies()
+	elif role == "boss":
+		if distance_to_target > 120.0:
+			direction = direction
+		else:
+			direction = Vector2.ZERO
 	velocity = direction * speed
 	move_and_slide()
 	if global_position.distance_to(_target.global_position) <= contact_range:
@@ -95,6 +102,10 @@ func take_damage(amount: float) -> void:
 		_clear_support_buffs()
 		_drop_experience()
 		_spawn_death_burst()
+		if is_boss:
+			var main := get_tree().current_scene
+			if main != null and main.has_method("_on_boss_defeated"):
+				main._on_boss_defeated()
 		queue_free()
 	else:
 		_hit_flash_remaining = 0.1

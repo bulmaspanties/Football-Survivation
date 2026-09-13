@@ -2,11 +2,14 @@ extends Node2D
 
 const RUN_DURATION_SECONDS := 300.0
 const ESCALATION_START_SECONDS := 30.0
+const HALFTIME_BOSS_SECONDS := 150.0
+const HALFTIME_WARNING_SECONDS := 3.0
 
 @onready var player: Player = $Player
 @onready var health_label: Label = $HUD/HealthPanel/HealthLabel
 @onready var experience_label: Label = $HUD/ExperiencePanel/ExperienceLabel
 @onready var survival_label: Label = $HUD/SurvivalPanel/SurvivalLabel
+@onready var boss_status: Label = $HUD/BossStatus
 @onready var upgrade_panel: Panel = $HUD/UpgradePanel
 @onready var upgrade_title: Label = $HUD/UpgradePanel/UpgradeTitle
 @onready var upgrade_buttons: Array[Button] = [
@@ -43,6 +46,10 @@ var run_finished := false
 var run_started := false
 var reward_granted := false
 var last_run_reward := 0
+var boss_event_triggered := false
+var boss_active := false
+var boss_warning_remaining := 0.0
+var boss_reward_granted := false
 
 const UPGRADE_OPTIONS := [
 	{"id": "tackle_unlock", "label": "Unlock Tackle Burst (close-range damage)", "category": "weapon"},
@@ -97,6 +104,14 @@ func _ready() -> void:
 	enemy_spawner.set_process(false)
 	get_tree().paused = true
 
+func _on_boss_defeated() -> void:
+	if boss_reward_granted:
+		return
+	boss_reward_granted = true
+	boss_active = false
+	boss_status.text = "HALFTIME ELITE DEFEATED"
+	ProfileManager.add_currency(50)
+
 func _process(delta: float) -> void:
 	if get_tree().paused or not run_started or run_finished:
 		return
@@ -104,8 +119,21 @@ func _process(delta: float) -> void:
 	survival_label.text = "Survive: %s / %s" % [_format_time(survival_time), _format_time(RUN_DURATION_SECONDS)]
 	var pressure := 1.0 + maxf(survival_time - ESCALATION_START_SECONDS, 0.0) / RUN_DURATION_SECONDS
 	enemy_spawner.set_pressure(pressure)
+	if not boss_event_triggered and survival_time >= HALFTIME_BOSS_SECONDS:
+		_trigger_halftime_boss()
+	if boss_warning_remaining > 0.0:
+		boss_warning_remaining = maxf(boss_warning_remaining - delta, 0.0)
+		if boss_warning_remaining <= 0.0 and boss_active:
+			boss_status.text = "HALFTIME ELITE ACTIVE"
 	if survival_time >= RUN_DURATION_SECONDS:
 		_finish_victory()
+
+func _trigger_halftime_boss() -> void:
+	boss_event_triggered = true
+	boss_active = true
+	boss_warning_remaining = HALFTIME_WARNING_SECONDS
+	boss_status.text = "HALFTIME WARNING - ELITE ARRIVING"
+	enemy_spawner.spawn_boss()
 
 func _format_time(seconds: float) -> String:
 	var whole_seconds := int(seconds)
@@ -206,12 +234,17 @@ func _start_run() -> void:
 	run_finished = false
 	reward_granted = false
 	last_run_reward = 0
+	boss_event_triggered = false
+	boss_active = false
+	boss_warning_remaining = 0.0
+	boss_reward_granted = false
 	survival_time = 0.0
 	title_panel.visible = false
 	profile_panel.visible = false
 	ProfileManager.mark_played()
 	player.apply_profile_upgrades(ProfileManager.selected_unlocks())
 	enemy_spawner.reset_run()
+	boss_status.text = ""
 	player.set_physics_process(true)
 	auto_weapon.set_process(true)
 	tackle_weapon.set_process(player.tackle_unlocked)
