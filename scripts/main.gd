@@ -105,6 +105,7 @@ func _ready() -> void:
 	meta_panel.visible = false
 	_refresh_meta_upgrades()
 	_refresh_loadout_hud()
+	_configure_focus()
 	for index in upgrade_buttons.size():
 		upgrade_buttons[index].pressed.connect(_on_upgrade_selected.bind(index))
 	player.set_physics_process(false)
@@ -114,6 +115,52 @@ func _ready() -> void:
 	stiff_arm.set_process(false)
 	enemy_spawner.set_process(false)
 	get_tree().paused = true
+	call_deferred("_focus_front_overlay")
+
+func _configure_focus() -> void:
+	_set_vertical_focus([
+		$HUD/TitlePanel/StartButton,
+	])
+	_set_vertical_focus([
+		$HUD/ProfilePanel/Slot1,
+		$HUD/ProfilePanel/Slot2,
+		$HUD/ProfilePanel/Slot3,
+		$HUD/ProfilePanel/MetaButton,
+	])
+	_set_vertical_focus(meta_buttons + [$HUD/MetaPanel/BackButton])
+	_set_vertical_focus(upgrade_buttons)
+	_set_vertical_focus([
+		$HUD/PausePanel/ResumeButton,
+		$HUD/PausePanel/RestartButton,
+		$HUD/PausePanel/TitleButton,
+		$HUD/PausePanel/SettingsButton,
+		$HUD/PausePanel/ProfileButton,
+	])
+	_set_vertical_focus([
+		$HUD/SettingsPanel/VolumeSlider,
+		$HUD/SettingsPanel/MuteCheck,
+		$HUD/SettingsPanel/FullscreenCheck,
+		$HUD/SettingsPanel/ResetButton,
+		$HUD/SettingsPanel/BackButton,
+	])
+	_set_vertical_focus([$HUD/GameOverPanel/RestartButton])
+	_set_vertical_focus([$HUD/VictoryPanel/RestartButton])
+
+func _set_vertical_focus(controls: Array) -> void:
+	for index in controls.size():
+		var control := controls[index] as Control
+		if control == null:
+			continue
+		var previous: Control = controls[(index - 1 + controls.size()) % controls.size()]
+		var next: Control = controls[(index + 1) % controls.size()]
+		control.focus_neighbor_top = control.get_path_to(previous)
+		control.focus_neighbor_bottom = control.get_path_to(next)
+
+func _focus_front_overlay() -> void:
+	if profile_panel.visible:
+		$HUD/ProfilePanel/Slot1.grab_focus()
+	elif title_panel.visible:
+		$HUD/TitlePanel/StartButton.grab_focus()
 
 func _on_wave_phase_changed(title: String, details: String) -> void:
 	if not run_started or run_finished:
@@ -203,6 +250,7 @@ func _on_player_level_up(new_level: int) -> void:
 		upgrade_buttons[index].set_meta("upgrade_id", option["id"])
 	upgrade_panel.visible = true
 	get_tree().paused = true
+	upgrade_buttons[0].grab_focus()
 
 func _available_upgrade_options() -> Array[Dictionary]:
 	var options: Array[Dictionary] = []
@@ -369,6 +417,7 @@ func _on_player_died() -> void:
 	get_tree().paused = false
 	game_over_panel.visible = true
 	game_over_currency.text = _terminal_summary("Profile reward: +%d coins\nTotal coins: %d" % [last_run_reward, ProfileManager.currency()])
+	$HUD/GameOverPanel/RestartButton.grab_focus()
 
 func _finish_victory() -> void:
 	run_finished = true
@@ -381,6 +430,7 @@ func _finish_victory() -> void:
 	victory_panel.visible = true
 	victory_currency.text = _terminal_summary("Profile reward: +%d coins\nTotal coins: %d" % [last_run_reward, ProfileManager.currency()])
 	get_tree().paused = true
+	$HUD/VictoryPanel/RestartButton.grab_focus()
 
 func _terminal_summary(reward_text: String) -> String:
 	var summary := "%s\nDrive: %s  |  Defeated: %d\nXP earned: %d  |  Impact plays: %d" % [
