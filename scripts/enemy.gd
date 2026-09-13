@@ -46,6 +46,8 @@ func apply_pressure(multiplier: float) -> void:
 	max_health *= multiplier
 	health = max_health
 	contact_damage *= multiplier
+	_support_base_speed = speed
+	_support_base_contact_damage = contact_damage
 
 func _physics_process(delta: float) -> void:
 	_hit_flash_remaining = maxf(_hit_flash_remaining - delta, 0.0)
