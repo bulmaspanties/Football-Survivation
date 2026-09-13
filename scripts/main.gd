@@ -5,6 +5,7 @@ const ESCALATION_START_SECONDS := 30.0
 const HALFTIME_BOSS_SECONDS := 150.0
 const HALFTIME_WARNING_SECONDS := 3.0
 
+@onready var arena: Arena = $Arena
 @onready var player: Player = $Player
 @onready var health_label: Label = $HUD/HealthPanel/HealthLabel
 @onready var experience_label: Label = $HUD/ExperiencePanel/ExperienceLabel
@@ -37,6 +38,7 @@ const HALFTIME_WARNING_SECONDS := 3.0
 	$HUD/MetaPanel/UpgradeButton7,
 	$HUD/MetaPanel/UpgradeButton8,
 	$HUD/MetaPanel/UpgradeButton9,
+	$HUD/MetaPanel/UpgradeButton10,
 ]
 @onready var difficulty_button: Button = $HUD/MetaPanel/DifficultyButton
 @onready var character_panel: Panel = $HUD/CharacterPanel
@@ -46,9 +48,17 @@ const HALFTIME_WARNING_SECONDS := 3.0
 	$HUD/CharacterPanel/CharacterButton2,
 	$HUD/CharacterPanel/CharacterButton3,
 ]
+@onready var map_panel: Panel = $HUD/MapPanel
+@onready var map_status: Label = $HUD/MapPanel/Status
+@onready var map_buttons: Array[Button] = [
+	$HUD/MapPanel/MapButton1,
+	$HUD/MapPanel/MapButton2,
+]
 @onready var title_character_button: Button = $HUD/TitlePanel/CharacterButton
+@onready var title_map_button: Button = $HUD/TitlePanel/MapButton
 @onready var title_settings_button: Button = $HUD/TitlePanel/SettingsButton
 @onready var selected_character_label: Label = $HUD/TitlePanel/SelectedCharacterLabel
+@onready var selected_map_label: Label = $HUD/TitlePanel/SelectedMapLabel
 @onready var pause_panel: Panel = $HUD/PausePanel
 @onready var settings_panel: Panel = $HUD/SettingsPanel
 @onready var settings_status: Label = $HUD/SettingsPanel/Status
@@ -123,6 +133,10 @@ func _ready() -> void:
 	$HUD/CharacterPanel/BackButton.pressed.connect(_close_character_select)
 	for index in character_buttons.size():
 		character_buttons[index].pressed.connect(_select_character.bind(index))
+	title_map_button.pressed.connect(_open_map_select)
+	$HUD/MapPanel/BackButton.pressed.connect(_close_map_select)
+	for index in map_buttons.size():
+		map_buttons[index].pressed.connect(_select_map.bind(index))
 	$HUD/GameOverPanel/RestartButton.pressed.connect(_restart_run)
 	$HUD/VictoryPanel/RestartButton.pressed.connect(_restart_run)
 	$HUD/PausePanel/ResumeButton.pressed.connect(_resume_run)
@@ -154,8 +168,11 @@ func _ready() -> void:
 	title_panel.visible = not profile_panel.visible
 	meta_panel.visible = false
 	character_panel.visible = false
+	map_panel.visible = false
 	_refresh_meta_upgrades()
 	_refresh_title_character_label()
+	_refresh_title_map_label()
+	_apply_active_map()
 	_refresh_loadout_hud()
 	_configure_focus()
 	for index in upgrade_buttons.size():
@@ -174,6 +191,7 @@ func _ready() -> void:
 func _configure_focus() -> void:
 	_set_vertical_focus([
 		$HUD/TitlePanel/CharacterButton,
+		title_map_button,
 		title_settings_button,
 		$HUD/TitlePanel/StartButton,
 	])
@@ -185,6 +203,7 @@ func _configure_focus() -> void:
 	])
 	_set_vertical_focus(meta_buttons + [difficulty_button, $HUD/MetaPanel/BackButton])
 	_set_vertical_focus(character_buttons + [$HUD/CharacterPanel/BackButton])
+	_set_vertical_focus(map_buttons + [$HUD/MapPanel/BackButton])
 	_set_vertical_focus(upgrade_buttons)
 	_set_vertical_focus([
 		$HUD/PausePanel/ResumeButton,
@@ -587,6 +606,7 @@ func _start_run() -> void:
 	ProfileManager.mark_played()
 	player.apply_character(ProfileManager.character_data(ProfileManager.selected_character()))
 	player.apply_profile_upgrades(ProfileManager.selected_unlocks())
+	_apply_active_map()
 	enemy_spawner.pro_difficulty = pro_difficulty_active
 	enemy_spawner.reset_run()
 	boss_status.text = ""
@@ -704,6 +724,8 @@ func _select_profile(slot: int) -> void:
 	profile_panel.visible = false
 	title_panel.visible = true
 	_refresh_title_character_label()
+	_refresh_title_map_label()
+	_apply_active_map()
 	$HUD/TitlePanel/StartButton.grab_focus()
 
 func _open_meta_upgrades() -> void:
@@ -784,6 +806,49 @@ func _refresh_title_character_label() -> void:
 		return
 	var current := ProfileManager.character_data(ProfileManager.selected_character())
 	selected_character_label.text = "Playing as: %s" % str(current.get("label", "Quarterback"))
+
+func _apply_active_map() -> void:
+	if is_instance_valid(arena):
+		arena.apply_map(ProfileManager.map_data(ProfileManager.selected_map()))
+
+func _open_map_select() -> void:
+	title_panel.visible = false
+	map_panel.visible = true
+	_refresh_map_select()
+	map_buttons[0].grab_focus()
+
+func _close_map_select() -> void:
+	map_panel.visible = false
+	title_panel.visible = true
+	_refresh_title_map_label()
+	title_map_button.grab_focus()
+
+func _select_map(index: int) -> void:
+	var map_info: Dictionary = ProfileManager.MAPS[index]
+	if ProfileManager.set_selected_map(map_info["id"]):
+		map_status.text = "Selected %s. Applies on your next kickoff.\nCoins: %d" % [map_info["label"], ProfileManager.currency()]
+		_apply_active_map()
+	else:
+		map_status.text = "That arena is locked. Unlock it from Front Office first.\nCoins: %d" % ProfileManager.currency()
+	_refresh_map_select()
+
+func _refresh_map_select() -> void:
+	if not is_instance_valid(map_panel):
+		return
+	var current := ProfileManager.selected_map()
+	map_status.text = "Permanent coins: %d\nSelection applies on your next run." % ProfileManager.currency()
+	for index in map_buttons.size():
+		var map_info: Dictionary = ProfileManager.MAPS[index]
+		var unlocked := ProfileManager.is_map_unlocked(map_info["id"])
+		var state := "SELECTED" if map_info["id"] == current else ("READY" if unlocked else "LOCKED")
+		var cost_text := "" if unlocked else "  |  Unlock from Front Office for %d coins" % ProfileManager.map_unlock_cost(map_info["id"])
+		map_buttons[index].text = "%s  [%s]\n%s%s" % [map_info["label"], state, map_info["blurb"], cost_text]
+
+func _refresh_title_map_label() -> void:
+	if not is_instance_valid(selected_map_label):
+		return
+	var current := ProfileManager.map_data(ProfileManager.selected_map())
+	selected_map_label.text = "Arena: %s" % str(current.get("label", "Classic Field"))
 
 func _refresh_profile_buttons() -> void:
 	var buttons: Array[Button] = [

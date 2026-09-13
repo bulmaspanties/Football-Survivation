@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=19 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://scenes/Enemy.tscn" id="2_enemy"]
@@ -10,6 +10,7 @@
 [ext_resource type="Script" path="res://scripts/enemy_spawner.gd" id="3_spawner"]
 [ext_resource type="Script" path="res://scripts/main.gd" id="4_main"]
 [ext_resource type="Script" path="res://scripts/pause_input.gd" id="9_pause_input"]
+[ext_resource type="Script" path="res://scripts/arena.gd" id="11_arena"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_horizontal"]
 size = Vector2(1120, 24)
@@ -109,6 +110,7 @@ process_mode = 3
 script = ExtResource("9_pause_input")
 
 [node name="Arena" type="Node2D" parent="."]
+script = ExtResource("11_arena")
 
 [node name="Floor" type="Polygon2D" parent="Arena"]
 polygon = PackedVector2Array(-560, -300, 560, -300, 560, 300, -560, 300)
@@ -296,28 +298,28 @@ visible = false
 [node name="TitlePanel" type="Panel" parent="HUD"]
 process_mode = 3
 offset_left = 326.0
-offset_top = 130.0
+offset_top = 80.0
 offset_right = 826.0
-offset_bottom = 518.0
+offset_bottom = 548.0
 mouse_filter = 1
 theme_override_styles/panel = SubResource("StyleBoxFlat_title")
 
 [node name="Title" type="Label" parent="HUD/TitlePanel"]
 offset_left = 24.0
-offset_top = 30.0
+offset_top = 20.0
 offset_right = 476.0
-offset_bottom = 92.0
+offset_bottom = 76.0
 theme_override_colors/font_color = Color(1, 0.86, 0.34, 1)
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 30
 text = "FOOTBALL\nSUNDAY SURVIVAL"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Description" type="Label" parent="HUD/TitlePanel"]
 offset_left = 44.0
-offset_top = 112.0
+offset_top = 84.0
 offset_right = 456.0
-offset_bottom = 202.0
+offset_bottom = 160.0
 theme_override_colors/font_color = Color(0.82, 0.92, 0.96, 1)
 text = "Win the five-minute drive.\nMove: WASD / Arrows or Left Stick.\nPause: Esc / P or controller Menu.\nA / Enter selects focused plays."
 horizontal_alignment = 1
@@ -325,32 +327,51 @@ vertical_alignment = 1
 
 [node name="SelectedCharacterLabel" type="Label" parent="HUD/TitlePanel"]
 offset_left = 44.0
-offset_top = 206.0
+offset_top = 166.0
 offset_right = 456.0
-offset_bottom = 232.0
+offset_bottom = 190.0
 theme_override_colors/font_color = Color(1, 0.86, 0.34, 1)
 text = "Playing as: Quarterback"
 horizontal_alignment = 1
 
+[node name="SelectedMapLabel" type="Label" parent="HUD/TitlePanel"]
+offset_left = 44.0
+offset_top = 192.0
+offset_right = 456.0
+offset_bottom = 216.0
+theme_override_colors/font_color = Color(0.82, 0.95, 1, 1)
+text = "Arena: Classic Field"
+horizontal_alignment = 1
+
 [node name="CharacterButton" type="Button" parent="HUD/TitlePanel"]
 offset_left = 100.0
-offset_top = 238.0
+offset_top = 222.0
 offset_right = 400.0
-offset_bottom = 274.0
+offset_bottom = 258.0
 process_mode = 3
 text = "Change Character"
 
+[node name="MapButton" type="Button" parent="HUD/TitlePanel"]
+offset_left = 100.0
+offset_top = 264.0
+offset_right = 400.0
+offset_bottom = 300.0
+process_mode = 3
+text = "Change Arena"
+
 [node name="SettingsButton" type="Button" parent="HUD/TitlePanel"]
 offset_left = 100.0
-offset_top = 280.0
+offset_top = 306.0
 offset_right = 400.0
-offset_bottom = 316.0
+offset_bottom = 342.0
 process_mode = 3
 text = "Settings & Accessibility"
 
 [node name="StartButton" type="Button" parent="HUD/TitlePanel"]
 offset_left = 120.0
-offset_top = 324.0
+offset_top = 352.0
+offset_right = 380.0
+offset_bottom = 402.0
 offset_right = 380.0
 offset_bottom = 374.0
 process_mode = 3
@@ -658,80 +679,87 @@ horizontal_alignment = 1
 [node name="UpgradeButton1" type="Button" parent="HUD/MetaPanel"]
 offset_left = 24.0
 offset_top = 100.0
-offset_right = 296.0
-offset_bottom = 140.0
+offset_right = 440.0
+offset_bottom = 138.0
 process_mode = 3
 
 [node name="UpgradeButton2" type="Button" parent="HUD/MetaPanel"]
 offset_left = 24.0
-offset_top = 148.0
-offset_right = 296.0
-offset_bottom = 188.0
+offset_top = 144.0
+offset_right = 440.0
+offset_bottom = 182.0
 process_mode = 3
 
 [node name="UpgradeButton3" type="Button" parent="HUD/MetaPanel"]
 offset_left = 24.0
-offset_top = 196.0
-offset_right = 296.0
-offset_bottom = 236.0
+offset_top = 188.0
+offset_right = 440.0
+offset_bottom = 226.0
 process_mode = 3
 
 [node name="UpgradeButton4" type="Button" parent="HUD/MetaPanel"]
-offset_left = 312.0
-offset_top = 100.0
-offset_right = 584.0
-offset_bottom = 140.0
+offset_left = 24.0
+offset_top = 232.0
+offset_right = 440.0
+offset_bottom = 270.0
 process_mode = 3
 
 [node name="UpgradeButton5" type="Button" parent="HUD/MetaPanel"]
-offset_left = 312.0
-offset_top = 148.0
-offset_right = 584.0
-offset_bottom = 188.0
+offset_left = 24.0
+offset_top = 276.0
+offset_right = 440.0
+offset_bottom = 314.0
 process_mode = 3
 
 [node name="UpgradeButton6" type="Button" parent="HUD/MetaPanel"]
-offset_left = 312.0
-offset_top = 196.0
-offset_right = 584.0
-offset_bottom = 236.0
+offset_left = 460.0
+offset_top = 100.0
+offset_right = 876.0
+offset_bottom = 138.0
 process_mode = 3
 
 [node name="UpgradeButton7" type="Button" parent="HUD/MetaPanel"]
-offset_left = 600.0
-offset_top = 100.0
-offset_right = 872.0
-offset_bottom = 140.0
+offset_left = 460.0
+offset_top = 144.0
+offset_right = 876.0
+offset_bottom = 182.0
 process_mode = 3
 
 [node name="UpgradeButton8" type="Button" parent="HUD/MetaPanel"]
-offset_left = 600.0
-offset_top = 148.0
-offset_right = 872.0
-offset_bottom = 188.0
+offset_left = 460.0
+offset_top = 188.0
+offset_right = 876.0
+offset_bottom = 226.0
 process_mode = 3
 
 [node name="UpgradeButton9" type="Button" parent="HUD/MetaPanel"]
-offset_left = 600.0
-offset_top = 196.0
-offset_right = 872.0
-offset_bottom = 236.0
+offset_left = 460.0
+offset_top = 232.0
+offset_right = 876.0
+offset_bottom = 270.0
+process_mode = 3
+
+[node name="UpgradeButton10" type="Button" parent="HUD/MetaPanel"]
+offset_left = 460.0
+offset_top = 276.0
+offset_right = 876.0
+offset_bottom = 314.0
 process_mode = 3
 
 [node name="DifficultyButton" type="Button" parent="HUD/MetaPanel"]
 offset_left = 24.0
-offset_top = 252.0
-offset_right = 872.0
-offset_bottom = 296.0
+offset_top = 326.0
+offset_right = 876.0
+offset_bottom = 366.0
 process_mode = 3
 toggle_mode = true
 text = "Pro Difficulty [OFF]  |  Tougher enemies, +50% run reward"
 
 [node name="BackButton" type="Button" parent="HUD/MetaPanel"]
 offset_left = 375.0
-offset_top = 312.0
+offset_top = 378.0
 offset_right = 525.0
-offset_bottom = 356.0
+offset_bottom = 420.0
 process_mode = 3
 text = "Back"
 
@@ -791,6 +819,57 @@ offset_left = 375.0
 offset_top = 352.0
 offset_right = 525.0
 offset_bottom = 396.0
+process_mode = 3
+text = "Back"
+
+[node name="MapPanel" type="Panel" parent="HUD"]
+visible = false
+process_mode = 3
+offset_left = 126.0
+offset_top = 40.0
+offset_right = 1026.0
+offset_bottom = 460.0
+mouse_filter = 1
+theme_override_styles/panel = SubResource("StyleBoxFlat_title")
+
+[node name="Title" type="Label" parent="HUD/MapPanel"]
+offset_left = 24.0
+offset_top = 14.0
+offset_right = 876.0
+offset_bottom = 50.0
+theme_override_colors/font_color = Color(1, 0.86, 0.34, 1)
+theme_override_font_sizes/font_size = 26
+text = "SELECT ARENA"
+horizontal_alignment = 1
+
+[node name="Status" type="Label" parent="HUD/MapPanel"]
+offset_left = 24.0
+offset_top = 54.0
+offset_right = 876.0
+offset_bottom = 84.0
+horizontal_alignment = 1
+
+[node name="MapButton1" type="Button" parent="HUD/MapPanel"]
+offset_left = 24.0
+offset_top = 96.0
+offset_right = 876.0
+offset_bottom = 176.0
+process_mode = 3
+autowrap_mode = 2
+
+[node name="MapButton2" type="Button" parent="HUD/MapPanel"]
+offset_left = 24.0
+offset_top = 192.0
+offset_right = 876.0
+offset_bottom = 272.0
+process_mode = 3
+autowrap_mode = 2
+
+[node name="BackButton" type="Button" parent="HUD/MapPanel"]
+offset_left = 375.0
+offset_top = 310.0
+offset_right = 525.0
+offset_bottom = 356.0
 process_mode = 3
 text = "Back"
 

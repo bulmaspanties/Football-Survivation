@@ -17,9 +17,44 @@ const META_UPGRADES := [
 	{"id": "film_study", "label": "Film Study: +15% XP gained", "cost": 90},
 	{"id": "unlock_running_back", "label": "Sign Running Back (playable character)", "cost": 70},
 	{"id": "unlock_linebacker", "label": "Sign Linebacker (playable character)", "cost": 90},
+	{"id": "unlock_bluegrass_field", "label": "Bluegrass Turf (arena theme unlock)", "cost": 80},
 ]
 
 const STARTING_CHARACTER_ID := "quarterback"
+const STARTING_MAP_ID := "classic_field"
+
+const MAPS := [
+	{
+		"id": "classic_field",
+		"label": "Classic Field",
+		"unlock_id": "",
+		"blurb": "Traditional green turf stadium with standard yard markings and gold end zones.",
+		"turf_color": Color(0.06, 0.34, 0.16, 1.0),
+		"end_zone_color": Color(0.04, 0.25, 0.13, 1.0),
+		"sideline_color": Color(1.0, 0.82, 0.3, 0.9),
+		"goalpost_color": Color(1.0, 0.86, 0.35, 1.0),
+		"yard_line_color": Color(0.75, 0.95, 0.73, 0.72),
+		"boundary_color": Color(0.92, 0.97, 0.86, 1.0),
+		"center_mark_color": Color(0.9, 0.98, 0.84, 0.9),
+		"crowd_color": Color(0.15, 0.19, 0.27, 0.9),
+		"end_zone_label_color": Color(1.0, 0.82, 0.35, 0.8),
+	},
+	{
+		"id": "bluegrass_field",
+		"label": "Bluegrass Field",
+		"unlock_id": "unlock_bluegrass_field",
+		"blurb": "Vibrant royal bluegrass field with ice-blue yard lines and golden sidelines.",
+		"turf_color": Color(0.08, 0.22, 0.42, 1.0),
+		"end_zone_color": Color(0.05, 0.15, 0.32, 1.0),
+		"sideline_color": Color(0.95, 0.85, 0.35, 0.9),
+		"goalpost_color": Color(1.0, 0.9, 0.45, 1.0),
+		"yard_line_color": Color(0.65, 0.88, 0.98, 0.75),
+		"boundary_color": Color(0.9, 0.95, 1.0, 1.0),
+		"center_mark_color": Color(0.85, 0.95, 1.0, 0.9),
+		"crowd_color": Color(0.12, 0.16, 0.25, 0.9),
+		"end_zone_label_color": Color(1.0, 0.88, 0.4, 0.85),
+	},
+]
 
 const CHARACTERS := [
 	{
@@ -150,6 +185,50 @@ func set_selected_character(character_id: String) -> bool:
 	_save_profiles()
 	return true
 
+func map_data(map_id: String) -> Dictionary:
+	for map in MAPS:
+		if map["id"] == map_id:
+			return map
+	return {}
+
+func map_unlock_cost(map_id: String) -> int:
+	var map := map_data(map_id)
+	if map.is_empty():
+		return 0
+	var unlock_id := str(map["unlock_id"])
+	if unlock_id.is_empty():
+		return 0
+	for upgrade in META_UPGRADES:
+		if upgrade["id"] == unlock_id:
+			return int(upgrade["cost"])
+	return 0
+
+func is_map_unlocked(map_id: String) -> bool:
+	var map := map_data(map_id)
+	if map.is_empty():
+		return false
+	var unlock_id := str(map["unlock_id"])
+	if unlock_id.is_empty():
+		return true
+	return has_unlock(unlock_id)
+
+func selected_map() -> String:
+	if selected_slot < 0 or selected_slot >= SLOT_COUNT:
+		return STARTING_MAP_ID
+	var stored := str(profiles[selected_slot].get("selected_map", STARTING_MAP_ID))
+	if map_data(stored).is_empty() or not is_map_unlocked(stored):
+		return STARTING_MAP_ID
+	return stored
+
+func set_selected_map(map_id: String) -> bool:
+	if selected_slot < 0 or selected_slot >= SLOT_COUNT:
+		return false
+	if not is_map_unlocked(map_id):
+		return false
+	profiles[selected_slot]["selected_map"] = map_id
+	_save_profiles()
+	return true
+
 func has_unlock(upgrade_id: String) -> bool:
 	if selected_slot < 0 or selected_slot >= SLOT_COUNT:
 		return false
@@ -179,12 +258,16 @@ func profile_summary(slot: int) -> String:
 	var character_id := str(profile.get("selected_character", STARTING_CHARACTER_ID))
 	var character := character_data(character_id)
 	var character_label := str(character.get("label", "Quarterback")) if not character.is_empty() else "Quarterback"
-	return "Created: %s\nLast played: %s\nCoins: %d\nDifficulty: %s\nPlayer: %s" % [
+	var map_id := str(profile.get("selected_map", STARTING_MAP_ID))
+	var map := map_data(map_id)
+	var map_label := str(map.get("label", "Classic Field")) if not map.is_empty() else "Classic Field"
+	return "Created: %s\nLast played: %s\nCoins: %d\nDifficulty: %s\nPlayer: %s  |  Field: %s" % [
 		profile.get("created", "Unknown"),
 		profile.get("last_played", "Never"),
 		int(profile.get("permanent_currency", 0)),
 		"PRO" if bool(profile.get("pro_difficulty", false)) else "NORMAL",
 		character_label,
+		map_label,
 	]
 
 func _new_profile() -> Dictionary:
@@ -197,6 +280,7 @@ func _new_profile() -> Dictionary:
 		"unlocks": [],
 		"pro_difficulty": false,
 		"selected_character": STARTING_CHARACTER_ID,
+		"selected_map": STARTING_MAP_ID,
 	}
 
 func _load_profiles() -> void:
@@ -240,6 +324,8 @@ func _normalize_profile(raw: Dictionary) -> Dictionary:
 	normalized["pro_difficulty"] = pro_difficulty if pro_difficulty is bool else false
 	var selected_character_raw = raw.get("selected_character", STARTING_CHARACTER_ID)
 	normalized["selected_character"] = selected_character_raw if selected_character_raw is String else STARTING_CHARACTER_ID
+	var selected_map_raw = raw.get("selected_map", STARTING_MAP_ID)
+	normalized["selected_map"] = selected_map_raw if selected_map_raw is String else STARTING_MAP_ID
 	return normalized
 
 func _save_profiles() -> void:

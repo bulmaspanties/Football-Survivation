@@ -74,7 +74,8 @@ The command should exit successfully only when the project and its scripts/scene
 - `scripts/football.gd`: projectile movement, collision, and damage
 - `scripts/auto_weapon.gd`: automatic nearby-enemy targeting and firing
 - `scripts/experience_pickup.gd`: XP pickup collection
-- `scripts/main.gd`: HUD and game-over wiring
+- `scripts/arena.gd`: data-driven arena background, turf, sideline, goalpost, yard line, crowd, and end zone styling
+- `scripts/main.gd`: HUD, overlay transitions, map/character wiring, and game-over logic
 
 ## Controls
 
@@ -133,6 +134,7 @@ Runs award permanent currency once at the end: victory grants 100 coins; game ov
 - Film Study: +15% XP gained for the whole run — 90 coins
 - Sign Running Back (playable character unlock) — 70 coins
 - Sign Linebacker (playable character unlock) — 90 coins
+- Bluegrass Turf (arena theme unlock) — 80 coins
 - Pro Difficulty (toggle, free): tougher enemies via a higher pressure curve, in exchange for a +50% end-of-run coin reward. Toggling does not cost currency and can be switched off again at any time from Front Office.
 
 Purchases are one-time (owned upgrades are marked and cannot be re-bought), reject insufficient funds, and — along with the Pro Difficulty toggle — only take effect starting with the next run; they never alter an active run mid-session. Weapons purchased as starting unlocks no longer need to be found via in-run level-ups, but the level-up unlock options remain available as a fallback for any weapon not already purchased, with no duplicate unlocks possible either way.
@@ -146,6 +148,21 @@ From the title screen (after choosing a profile), use "Change Character" to open
 - **Linebacker** (unlock via Front Office, 90 coins): +30 starting max health, -20 starting movement speed, +8 starting Tackle Burst and Stiff Arm damage. Built to punish contact.
 
 Each character shows a distinct jersey color and a two-letter role tag (QB/RB/LB) on the player sprite. The character screen shows each option's lock state, stat blurb, and unlock cost if locked; picking a locked character does nothing until it's purchased from Front Office. The profile remembers its last-selected unlocked character (falling back to Quarterback if the saved pick is ever invalid or not owned) and applies it — stacked additively with meta stat upgrades and independent of the Pro Difficulty toggle — only when a new run starts, never mid-run.
+
+## Map & arena selection
+
+The arena presentation is built on a data-driven map framework (`scripts/arena.gd` and `ProfileManager.MAPS`). Maps configure visual parameters (turf color, end zone color, sideline and goalpost accents, yard line markings, boundary lines, center circle mark, crowd silhouettes, and end zone labels) while keeping all core gameplay logic—including spawner boundaries, wave director pacing, collision shapes, weapon interactions, and halftime boss events—completely map-agnostic and identical across arenas.
+
+From the title screen, select "Change Arena" to open the arena selection menu:
+
+- **Classic Field** (unlocked by default): traditional green turf stadium with gold sideline accents, white yard markings, and green/gold end zones.
+- **Bluegrass Field** (unlock via Front Office, 80 coins): vibrant royal bluegrass turf with ice-blue yard lines, golden sidelines, and deep navy end zones.
+
+### Persistence & future maps
+
+- `selected_map` is persisted per profile across the three save slots. If a profile loads an invalid or unpurchased map ID, it safely defaults to `classic_field`.
+- The selected map is previewed dynamically in the background on the title and selection menus and applied cleanly at kickoff and run restart without altering active gameplay state.
+- **Adding new maps**: To introduce a new map theme, add an entry to the `MAPS` array in `scripts/profile_manager.gd` with its visual parameters (colors for turf, end zones, lines, etc.), and optionally add an unlock entry to `META_UPGRADES`. The `Arena` class (`scripts/arena.gd`) and `MapPanel` UI will automatically handle rendering and selection.
 
 Defenders appear around the arena perimeter and damage the player on contact. Fast runners begin joining the waves as survival pressure rises; they move faster but have lower health and contact damage. Player health is displayed in the top-left HUD; the game-over panel appears when health reaches zero.
 
