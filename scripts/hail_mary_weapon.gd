@@ -16,7 +16,7 @@ func _ready() -> void:
 	set_process(false)
 
 func _process(delta: float) -> void:
-	if not unlocked or not is_instance_valid(_player) or _player.health <= 0.0:
+	if not unlocked or not is_instance_valid(_player) or _player.health <= 0.0 or _player.is_flagged():
 		return
 	_cooldown_remaining = maxf(_cooldown_remaining - delta, 0.0)
 	if _cooldown_remaining > 0.0:
@@ -24,6 +24,7 @@ func _process(delta: float) -> void:
 	var target: Enemy = _nearest_enemy()
 	if target == null or projectile_scene == null:
 		return
+	_player.notify_attack_fired()
 	var projectile: HailMary = projectile_scene.instantiate() as HailMary
 	if projectile == null:
 		return

@@ -14,7 +14,7 @@ func _ready() -> void:
 	_player = get_parent() as Player
 
 func _process(delta: float) -> void:
-	if not is_instance_valid(_player) or _player.health <= 0.0:
+	if not is_instance_valid(_player) or _player.health <= 0.0 or _player.is_flagged():
 		return
 	_fire_timer = maxf(_fire_timer - delta, 0.0)
 	if _fire_timer > 0.0:
@@ -22,6 +22,7 @@ func _process(delta: float) -> void:
 	var target: Enemy = _nearest_enemy()
 	if target == null:
 		return
+	_player.notify_attack_fired()
 	_fire_timer = fire_interval
 	_fire_at(target)
 

@@ -51,6 +51,10 @@ pause_game={
 "deadzone": 0.2,
 "events": [Object(InputEventKey,"physical_keycode":4194305), Object(InputEventKey,"physical_keycode":80), Object(InputEventJoypadButton,"button_index":4), Object(InputEventJoypadButton,"button_index":5), Object(InputEventJoypadButton,"button_index":6)]
 }
+audible_ability={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":32), Object(InputEventJoypadButton,"button_index":9), Object(InputEventJoypadButton,"button_index":10)]
+}
 ui_accept={
 "deadzone": 0.2,
 "events": [Object(InputEventKey,"physical_keycode":4194309), Object(InputEventKey,"physical_keycode":32), Object(InputEventJoypadButton,"button_index":0)]

@@ -1,0 +1,85 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemy.gd" id="1_enemy"]
+[ext_resource type="PackedScene" path="res://scenes/ExperiencePickup.tscn" id="2_experience"]
+[ext_resource type="PackedScene" path="res://scenes/DeathBurst.tscn" id="3_death_burst"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_referee"]
+radius = 14.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_referee"]
+bg_color = Color(0.92, 0.92, 0.92, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.12, 0.12, 0.12, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_referee"]
+animations = [{
+"frames": [],
+"loop": true,
+"name": &"idle",
+"speed": 5.0
+}, {
+"frames": [],
+"loop": true,
+"name": &"run",
+"speed": 8.0
+}, {
+"frames": [],
+"loop": false,
+"name": &"hit",
+"speed": 10.0
+}, {
+"frames": [],
+"loop": false,
+"name": &"death",
+"speed": 10.0
+}]
+
+[node name="Referee" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_enemy")
+role = "referee"
+speed = 52.0
+max_health = 35.0
+contact_damage = 5.0
+contact_range = 26.0
+experience_reward = 3
+penalty_radius = 160.0
+experience_scene = ExtResource("2_experience")
+death_burst_scene = ExtResource("3_death_burst")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_referee")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+visible = false
+sprite_frames = SubResource("SpriteFrames_referee")
+animation = &"idle"
+
+[node name="Visual" type="Panel" parent="."]
+offset_left = -14.0
+offset_top = -14.0
+offset_right = 14.0
+offset_bottom = 14.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_referee")
+
+[node name="Stripe1" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-6, -13, -2, -13, -2, 13, -6, 13)
+color = Color(0.1, 0.1, 0.1, 1)
+
+[node name="Stripe2" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(2, -13, 6, -13, 6, 13, 2, 13)
+color = Color(0.1, 0.1, 0.1, 1)
+
+[node name="Whistle" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-3, -17, 3, -17, 4, -13, -4, -13)
+color = Color(1, 0.85, 0.2, 1)

@@ -16,6 +16,7 @@ const REMAPPABLE_ACTIONS: Array[String] = [
 	"move_left",
 	"move_right",
 	"pause_game",
+	"audible_ability",
 ]
 
 const ACTION_DISPLAY_NAMES := {
@@ -24,6 +25,7 @@ const ACTION_DISPLAY_NAMES := {
 	"move_left": "Move Left",
 	"move_right": "Move Right",
 	"pause_game": "Pause",
+	"audible_ability": "Call Audible",
 }
 
 const DEFAULT_KEY_BINDINGS := {
@@ -32,6 +34,7 @@ const DEFAULT_KEY_BINDINGS := {
 	"move_left": KEY_A,
 	"move_right": KEY_D,
 	"pause_game": KEY_ESCAPE,
+	"audible_ability": KEY_SPACE,
 }
 
 const PALETTES := {
@@ -44,6 +47,8 @@ const PALETTES := {
 		"enemy_thrower": Color(0.68, 0.18, 0.38, 1.0),
 		"enemy_blocker": Color(0.28, 0.42, 0.56, 1.0),
 		"enemy_support": Color(0.22, 0.78, 0.32, 1.0),
+		"enemy_referee": Color(0.92, 0.92, 0.92, 1.0),
+		"penalty_zone": Color(1.0, 0.85, 0.2, 0.85),
 		"enemy_boss": Color(0.58, 0.12, 0.18, 1.0),
 		"enemy_boss_border": Color(1.0, 0.82, 0.25, 1.0),
 		"xp_pickup": Color(0.45, 0.95, 0.55, 1.0),
@@ -61,6 +66,8 @@ const PALETTES := {
 		"enemy_thrower": Color(0.5, 0.2, 0.85, 1.0),
 		"enemy_blocker": Color(0.15, 0.65, 0.75, 1.0),
 		"enemy_support": Color(0.2, 0.85, 0.95, 1.0),
+		"enemy_referee": Color(0.96, 0.96, 0.96, 1.0),
+		"penalty_zone": Color(0.95, 0.9, 0.25, 0.9),
 		"enemy_boss": Color(0.9, 0.15, 0.65, 1.0),
 		"enemy_boss_border": Color(1.0, 0.92, 0.3, 1.0),
 		"xp_pickup": Color(0.98, 0.85, 0.2, 1.0),

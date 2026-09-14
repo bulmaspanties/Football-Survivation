@@ -73,11 +73,15 @@ const HALFTIME_WARNING_SECONDS := 3.0
 @onready var rebind_left_button: Button = $HUD/SettingsPanel/RebindLeftButton
 @onready var rebind_right_button: Button = $HUD/SettingsPanel/RebindRightButton
 @onready var rebind_pause_button: Button = $HUD/SettingsPanel/RebindPauseButton
+@onready var rebind_audible_button: Button = $HUD/SettingsPanel/RebindAudibleButton
 @onready var reset_keys_button: Button = $HUD/SettingsPanel/ResetKeysButton
 @onready var auto_weapon: AutoWeapon = $Player/AutoWeapon
 @onready var tackle_weapon: TackleWeapon = $Player/TackleWeapon
 @onready var hail_mary_weapon: HailMaryWeapon = $Player/HailMaryWeapon
 @onready var stiff_arm: StiffArm = $Player/StiffArm
+@onready var audible_label: Label = $HUD/AudiblePanel/AudibleLabel
+@onready var flagged_status: Label = $HUD/FlaggedStatus
+@onready var hazard_status: Label = $HUD/HazardStatus
 @onready var victory_currency: Label = $HUD/VictoryPanel/Currency
 @onready var game_over_currency: Label = $HUD/GameOverPanel/Currency
 
@@ -91,6 +95,7 @@ var boss_active := false
 var boss_warning_remaining := 0.0
 var boss_reward_granted := false
 var wave_banner_remaining := 0.0
+var hazard_banner_remaining := 0.0
 var enemies_defeated := 0
 var xp_earned := 0
 var damage_events := 0
@@ -118,7 +123,9 @@ func _ready() -> void:
 	player.experience_changed.connect(_on_player_experience_changed)
 	player.level_up.connect(_on_player_level_up)
 	player.died.connect(_on_player_died)
+	player.audible_triggered.connect(_on_player_audible_triggered)
 	enemy_spawner.phase_changed.connect(_on_wave_phase_changed)
+	enemy_spawner.hazard_changed.connect(_on_hazard_changed)
 	$HUD/TitlePanel/StartButton.pressed.connect(_start_run)
 	title_settings_button.pressed.connect(_open_settings_from_title)
 	$HUD/ProfilePanel/Slot1.pressed.connect(_select_profile.bind(0))
@@ -157,6 +164,7 @@ func _ready() -> void:
 	rebind_left_button.pressed.connect(_start_rebind.bind("move_left"))
 	rebind_right_button.pressed.connect(_start_rebind.bind("move_right"))
 	rebind_pause_button.pressed.connect(_start_rebind.bind("pause_game"))
+	rebind_audible_button.pressed.connect(_start_rebind.bind("audible_ability"))
 	reset_keys_button.pressed.connect(_on_reset_keys_pressed)
 	SettingsManager.palette_changed.connect(_update_hud_palette)
 	SettingsManager.settings_changed.connect(_sync_settings_controls)
@@ -174,6 +182,7 @@ func _ready() -> void:
 	_refresh_title_map_label()
 	_apply_active_map()
 	_refresh_loadout_hud()
+	_refresh_audible_hud()
 	_configure_focus()
 	for index in upgrade_buttons.size():
 		upgrade_buttons[index].pressed.connect(_on_upgrade_selected.bind(index))
@@ -224,6 +233,7 @@ func _configure_focus() -> void:
 		rebind_left_button,
 		rebind_right_button,
 		rebind_pause_button,
+		rebind_audible_button,
 		reset_keys_button,
 		$HUD/SettingsPanel/ResetButton,
 		$HUD/SettingsPanel/BackButton,
@@ -272,6 +282,27 @@ func _on_wave_phase_changed(title: String, details: String) -> void:
 	wave_banner_remaining = 4.0
 	AudioManager.play_cue("phase_change")
 
+func _on_hazard_changed(hazard_type: String, title: String, desc: String) -> void:
+	if not run_started or run_finished:
+		return
+	arena.set_hazard(hazard_type)
+	if hazard_type == "muddy_turf":
+		player.set_turf_speed_modifier(0.72)
+	else:
+		player.set_turf_speed_modifier(1.0)
+
+	if not title.is_empty():
+		hazard_status.text = "%s\n%s" % [title, desc]
+		hazard_status.visible = true
+		hazard_banner_remaining = 4.0
+		if hazard_type.is_empty():
+			AudioManager.play_cue("hazard_end")
+		else:
+			AudioManager.play_cue("hazard_start")
+
+func _on_player_audible_triggered(_ability_name: String) -> void:
+	_refresh_audible_hud()
+
 func _on_enemy_defeated() -> void:
 	enemies_defeated += 1
 
@@ -316,6 +347,13 @@ func _process(delta: float) -> void:
 		wave_banner_remaining = maxf(wave_banner_remaining - delta, 0.0)
 		if wave_banner_remaining <= 0.0:
 			wave_status.visible = false
+	if hazard_banner_remaining > 0.0:
+		hazard_banner_remaining = maxf(hazard_banner_remaining - delta, 0.0)
+		if hazard_banner_remaining <= 0.0:
+			hazard_status.visible = false
+	if is_instance_valid(flagged_status):
+		flagged_status.visible = player.is_flagged()
+	_refresh_audible_hud()
 	survival_time = minf(survival_time + delta, RUN_DURATION_SECONDS)
 	survival_label.text = "DRIVE CLOCK  %s / %s" % [_format_time(survival_time), _format_time(RUN_DURATION_SECONDS)]
 	var pressure := 1.0 + maxf(survival_time - ESCALATION_START_SECONDS, 0.0) / RUN_DURATION_SECONDS
@@ -349,7 +387,7 @@ func _on_player_experience_changed(current_experience: int, experience_to_next_l
 	experience_label.text = "DRIVE XP  |  Level %d  |  %d / %d" % [current_level, current_experience, experience_to_next_level]
 
 func _on_player_level_up(new_level: int) -> void:
-	upgrade_title.text = "HALFTIME HUDDLE - Call a play (Level %d)" % new_level
+	upgrade_title.text = "PLAYBOOK - Call a Play (Level %d)" % new_level
 	var options := _available_upgrade_options()
 	var start_index := (new_level - 1) % options.size()
 	for index in upgrade_buttons.size():
@@ -583,6 +621,7 @@ func _sync_settings_controls() -> void:
 	rebind_left_button.text = "Move Left: [ %s ]" % ("Press key..." if _listening_action == "move_left" else SettingsManager.get_key_label("move_left"))
 	rebind_right_button.text = "Move Right: [ %s ]" % ("Press key..." if _listening_action == "move_right" else SettingsManager.get_key_label("move_right"))
 	rebind_pause_button.text = "Pause: [ %s ]" % ("Press key..." if _listening_action == "pause_game" else SettingsManager.get_key_label("pause_game"))
+	rebind_audible_button.text = "Audible: [ %s ]" % ("Press key..." if _listening_action == "audible_ability" else SettingsManager.get_key_label("audible_ability"))
 
 func _start_run() -> void:
 	if run_started:
@@ -611,6 +650,10 @@ func _start_run() -> void:
 	enemy_spawner.reset_run()
 	boss_status.text = ""
 	wave_status.visible = false
+	if is_instance_valid(flagged_status):
+		flagged_status.visible = false
+	if is_instance_valid(hazard_status):
+		hazard_status.visible = false
 	player.set_physics_process(true)
 	auto_weapon.set_process(true)
 	if player.tackle_unlocked:
@@ -626,6 +669,7 @@ func _start_run() -> void:
 	else:
 		stiff_arm.set_process(false)
 	_refresh_loadout_hud()
+	_refresh_audible_hud()
 	_show_controls_hint()
 	enemy_spawner.set_process(true)
 	get_tree().paused = false
@@ -639,6 +683,18 @@ func _show_controls_hint() -> void:
 	tween.tween_interval(3.0)
 	tween.tween_property(controls_hint, "modulate:a", 0.0, 1.0)
 	tween.tween_callback(controls_hint.hide)
+
+func _refresh_audible_hud() -> void:
+	if not is_instance_valid(audible_label) or not is_instance_valid(player):
+		return
+	var ability_name := player.get_audible_name()
+	var cd := player.audible_cooldown_remaining
+	if cd <= 0.0:
+		audible_label.text = "AUDIBLE [Space/RB]\n%s (READY)" % ability_name
+		audible_label.add_theme_color_override("font_color", Color(1.0, 0.86, 0.34, 1.0))
+	else:
+		audible_label.text = "AUDIBLE [Space/RB]\n%s (%.1fs)" % [ability_name, cd]
+		audible_label.add_theme_color_override("font_color", Color(0.7, 0.75, 0.8, 0.85))
 
 func _refresh_loadout_hud() -> void:
 	if not is_instance_valid(loadout_label):
@@ -693,6 +749,7 @@ func _terminal_summary(reward_text: String) -> String:
 		"Tackle %d" % int(weapon_hits.get("Tackle Burst", 0)),
 		"Hail Mary %d" % int(weapon_hits.get("Hail Mary", 0)),
 		"Stiff Arm %d" % int(weapon_hits.get("Stiff Arm", 0)),
+		"Audible %d" % int(weapon_hits.get("Pocket Protection", 0) + weapon_hits.get("Juke Move", 0) + weapon_hits.get("Bull Rush", 0)),
 	])
 	return "%s\nWeapon hits: %s" % [summary, hit_summary]
 

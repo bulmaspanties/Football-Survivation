@@ -15,7 +15,7 @@ func _ready() -> void:
 	set_process(false)
 
 func _process(delta: float) -> void:
-	if not unlocked or not is_instance_valid(_player) or _player.health <= 0.0:
+	if not unlocked or not is_instance_valid(_player) or _player.health <= 0.0 or _player.is_flagged():
 		return
 	_cooldown_remaining = maxf(_cooldown_remaining - delta, 0.0)
 	_feedback_remaining = maxf(_feedback_remaining - delta, 0.0)
@@ -34,6 +34,7 @@ func _process(delta: float) -> void:
 			if main != null and main.has_method("_on_weapon_hit"):
 				main._on_weapon_hit("Tackle Burst")
 	if hit_count > 0:
+		_player.notify_attack_fired()
 		_cooldown_remaining = cooldown
 		_feedback_remaining = 0.18
 		SettingsManager.rumble(0.35, 0.5, 0.18)

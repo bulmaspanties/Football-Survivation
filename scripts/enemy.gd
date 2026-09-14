@@ -9,7 +9,7 @@ extends CharacterBody2D
 @export var experience_reward := 2
 @export var experience_scene: PackedScene
 @export var death_burst_scene: PackedScene
-@export_enum("defender", "thrower", "blocker", "support", "boss") var role := "defender"
+@export_enum("defender", "thrower", "blocker", "support", "referee", "boss") var role := "defender"
 @export var is_boss := false
 @export var boss_coin_reward := 50
 @export var preferred_distance := 260.0
@@ -23,6 +23,7 @@ extends CharacterBody2D
 @export var support_duration := 4.0
 @export var support_speed_multiplier := 1.2
 @export var support_damage_multiplier := 1.15
+@export var penalty_radius := 160.0
 
 var health := max_health
 var _contact_cooldown_remaining := 0.0
@@ -35,6 +36,10 @@ var _support_base_speed := 0.0
 var _support_base_contact_damage := 0.0
 var _support_feedback_remaining := 0.0
 var _attack_warning_remaining := 0.0
+var _knockback_velocity := Vector2.ZERO
+var _player_in_penalty_zone := false
+var _wander_angle := 0.0
+var _wander_timer := 0.0
 @onready var _visual: CanvasItem = $Visual
 @onready var _animated_sprite: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
 
@@ -87,6 +92,15 @@ func apply_pressure(multiplier: float) -> void:
 	_support_base_speed = speed
 	_support_base_contact_damage = contact_damage
 
+func apply_knockback(force: Vector2) -> void:
+	if health > 0.0:
+		_knockback_velocity += force
+
+func _exit_tree() -> void:
+	if _player_in_penalty_zone and is_instance_valid(_target):
+		_target.exit_penalty_zone()
+		_player_in_penalty_zone = false
+
 func _physics_process(delta: float) -> void:
 	_hit_flash_remaining = maxf(_hit_flash_remaining - delta, 0.0)
 	_attack_warning_remaining = maxf(_attack_warning_remaining - delta, 0.0)
@@ -115,17 +129,42 @@ func _physics_process(delta: float) -> void:
 	_ranged_cooldown_remaining = maxf(_ranged_cooldown_remaining - delta, 0.0)
 	_support_cooldown_remaining = maxf(_support_cooldown_remaining - delta, 0.0)
 	_support_feedback_remaining = maxf(_support_feedback_remaining - delta, 0.0)
+	_knockback_velocity = _knockback_velocity.move_toward(Vector2.ZERO, 1100.0 * delta)
 	queue_redraw()
 	_prune_support_sources()
 	if not is_instance_valid(_target):
 		_target = get_tree().get_first_node_in_group("player") as Player
 	if not is_instance_valid(_target) or _target.health <= 0.0:
+		if _player_in_penalty_zone:
+			_player_in_penalty_zone = false
 		velocity = Vector2.ZERO
 		return
 
 	var distance_to_target := global_position.distance_to(_target.global_position)
 	var direction := global_position.direction_to(_target.global_position)
-	if role == "thrower":
+
+	if role == "referee":
+		if distance_to_target <= penalty_radius:
+			if not _player_in_penalty_zone:
+				_player_in_penalty_zone = true
+				_target.enter_penalty_zone()
+		else:
+			if _player_in_penalty_zone:
+				_player_in_penalty_zone = false
+				_target.exit_penalty_zone()
+
+		_wander_timer -= delta
+		if _wander_timer <= 0.0:
+			_wander_timer = randf_range(1.5, 3.0)
+			_wander_angle = randf_range(0.0, TAU)
+		var wander_dir := Vector2.from_angle(_wander_angle)
+		if distance_to_target > 320.0:
+			direction = (direction * 0.7 + wander_dir * 0.3).normalized()
+		elif distance_to_target < 100.0:
+			direction = (-direction * 0.6 + wander_dir * 0.4).normalized()
+		else:
+			direction = wander_dir
+	elif role == "thrower":
 		if distance_to_target < preferred_distance - 24.0:
 			direction = -direction
 		elif distance_to_target <= preferred_distance + 24.0:
@@ -146,7 +185,7 @@ func _physics_process(delta: float) -> void:
 			direction = direction
 		else:
 			direction = Vector2.ZERO
-	velocity = direction * speed
+	velocity = direction * speed + _knockback_velocity
 	move_and_slide()
 	if global_position.distance_to(_target.global_position) <= contact_range:
 		if role == "blocker" or role == "boss":
@@ -165,6 +204,9 @@ func take_damage(amount: float) -> void:
 	if main != null and main.has_method("_on_enemy_damaged"):
 		main._on_enemy_damaged(global_position, amount)
 	if health <= 0.0:
+		if _player_in_penalty_zone and is_instance_valid(_target):
+			_target.exit_penalty_zone()
+			_player_in_penalty_zone = false
 		if main != null and main.has_method("_on_enemy_defeated"):
 			main._on_enemy_defeated()
 		_clear_support_buffs()
@@ -262,6 +304,11 @@ func _spawn_death_burst() -> void:
 	burst.setup(Color(1.0, 0.3, 0.22, 1.0))
 
 func _draw() -> void:
+	if role == "referee":
+		var zone_col: Color = SettingsManager.get_color("penalty_zone", Color(1.0, 0.9, 0.2, 0.18))
+		draw_circle(Vector2.ZERO, penalty_radius, zone_col)
+		draw_arc(Vector2.ZERO, penalty_radius, 0.0, TAU, 36, Color(1.0, 0.9, 0.2, 0.65), 2.5)
+
 	if _attack_warning_remaining <= 0.0:
 		return
 	var cue_radius := contact_range if role == "blocker" or role == "boss" else 28.0

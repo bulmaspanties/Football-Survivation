@@ -31,6 +31,12 @@ const CUES := {
 	"game_over": {"freq": 300.0, "sweep_to": 90.0, "duration": 0.55, "wave": "square", "volume_db": -5.0, "respect_pause": false},
 	"menu_navigate": {"freq": 620.0, "duration": 0.045, "wave": "sine", "volume_db": -12.0, "respect_pause": false},
 	"menu_confirm": {"freq": 720.0, "sweep_to": 900.0, "duration": 0.09, "wave": "sine", "volume_db": -9.0, "respect_pause": false},
+	"flagged": {"freq": 1100.0, "sweep_to": 750.0, "duration": 0.22, "wave": "square", "volume_db": -6.0, "respect_pause": true},
+	"audible_qb": {"freq": 420.0, "sweep_to": 780.0, "duration": 0.35, "wave": "sine", "volume_db": -5.0, "respect_pause": true},
+	"audible_rb": {"freq": 320.0, "sweep_to": 620.0, "duration": 0.22, "wave": "sine", "volume_db": -5.0, "respect_pause": true},
+	"audible_lb": {"freq": 180.0, "sweep_to": 90.0, "duration": 0.3, "wave": "noise", "volume_db": -4.0, "respect_pause": true},
+	"hazard_start": {"freq": 240.0, "sweep_to": 180.0, "duration": 0.45, "wave": "square", "volume_db": -6.0, "respect_pause": true},
+	"hazard_end": {"freq": 480.0, "sweep_to": 680.0, "duration": 0.3, "wave": "sine", "volume_db": -7.0, "respect_pause": true},
 }
 
 var _stream_cache: Dictionary = {}

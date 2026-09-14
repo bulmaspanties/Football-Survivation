@@ -83,19 +83,21 @@ The command should exit successfully only when the project and its scripts/scene
 - **S / Down Arrow**: move down (default, rebindable)
 - **A / Left Arrow**: move left (default, rebindable)
 - **D / Right Arrow**: move right (default, rebindable)
+- **Space / Controller RB (R1)**: activate character Audible ability (default, rebindable)
 - **Escape / P**: pause or resume during an active run (default, rebindable)
 
 ### Key remapping
 
-From the Settings & Accessibility menu (accessible from the title screen or the in-game pause menu), select any movement or pause action to bind a new keyboard key. The menu validates against conflicting keys (preventing the same key from being assigned to multiple actions) and invalid keys, allows canceling with Escape, and offers a dedicated "Reset Default Keys" button to restore standard WASD + Arrow bindings. Keybindings persist during the session in `SettingsManager` and preserve all controller inputs.
+From the Settings & Accessibility menu (accessible from the title screen or the in-game pause menu), select any movement, audible, or pause action to bind a new keyboard key. The menu validates against conflicting keys (preventing the same key from being assigned to multiple actions) and invalid keys, allows canceling with Escape, and offers a dedicated "Reset Default Keys" button to restore standard bindings. Keybindings persist during the session in `SettingsManager` and preserve all controller inputs.
 
 ### Controller & rumble support
 
-Controller support uses the left stick or D-pad for movement, with deadzone and normalized eight-direction movement preserved. The controller Menu/Start button pauses or resumes an active run; A/Cross accepts focused controls and B/Circle cancels or backs out.
+Controller support uses the left stick or D-pad for movement, with deadzone and normalized eight-direction movement preserved. The controller Menu/Start button pauses or resumes an active run; A/Cross accepts focused controls, B/Circle cancels or backs out, and RB (Right Bumper) triggers the character's Audible ability.
 
 A controller vibration / rumble toggle in Settings controls tactile haptic feedback. When enabled, rumble is safely dispatched for:
-- Player damage taken and turnover defeat
+- Player damage taken, turnover defeat, and referee whistle flags
 - Weapon impacts (Football, Tackle Burst, Hail Mary, and Stiff Arm hits)
+- Audible ability activation (Pocket Protection, Juke Move, Bull Rush)
 - Halftime Elite arrival warning and defeat
 - Touchdown victory celebration
 
@@ -108,9 +110,9 @@ Accessible from both the title screen ("Settings & Accessibility") and the sidel
 - **Master volume & mute**: slider (0% to 100%) and instant mute toggle routing through Godot's `Master` audio bus.
 - **Display mode**: fullscreen and windowed toggle.
 - **Controller vibration**: toggle for all gameplay rumble and haptic cues.
-- **Colorblind palette**: toggle for a high-contrast, colorblind-friendly theme that recolors the player roles, all five enemy archetypes and the halftime Elite, XP gems, enemy projectiles, telegraphs, and HUD labels without relying on red/green distinction alone.
+- **Colorblind palette**: toggle for a high-contrast, colorblind-friendly theme that recolors the player roles, all six enemy archetypes (including Referee), the penalty zone, halftime Elite, XP gems, enemy projectiles, telegraphs, and HUD labels without relying on red/green distinction alone.
 - **Text size scaling**: Small, Normal, and Large font-size options that scale HUD labels, buttons, and all overlays cleanly without clipping or breaking the layout.
-- **Keyboard remapping**: per-action key rebinds for movement and pause with live validation and reset.
+- **Keyboard remapping**: per-action key rebinds for movement, audible ability, and pause with live validation and reset.
 - **Reset all settings**: restores audio, display, haptics, colorblind palette, text size, and keybindings to factory defaults.
 
 Settings persist across runs and screens for the duration of the session and remain completely decoupled from profile save slots.
@@ -118,6 +120,8 @@ Settings persist across runs and screens for the duration of the session and rem
 ## Audio
 
 All sound effects are procedurally generated at runtime by an `AudioManager` autoload (`scripts/audio_manager.gd`) using built-in `AudioStreamWAV`/`AudioStreamPlayer` — no external audio files or dependencies. Each cue is a short synthesized tone, sweep, or noise burst defined in one central table, cached after first use, and played through the `Master` audio bus, so the Settings volume slider and mute toggle apply automatically. A small player pool keeps effects from stacking indefinitely. Because every call site only requests a named cue (for example `AudioManager.play_cue("football_throw")`), the generated tones could later be swapped for real audio assets without changing any gameplay code.
+
+Distinct cues cover: football throw, Tackle Burst, Hail Mary, Stiff Arm, enemy hit, enemy defeat, referee penalty flag whistle, QB Pocket Protection shockwave, RB Juke dash, LB Bull Rush charge, Turf Hazard start/end alerts, halftime Elite warning/defeat, XP pickup, Playbook level-up, wave phase change banner, player damage, touchdown victory, turnover game-over, and menu navigate/confirm. Gameplay cues are skipped while the game is paused; menu navigation/confirmation and the victory/game-over stingers still play so pause and end-of-run screens remain responsive.
 
 Distinct cues cover: football throw, Tackle Burst, Hail Mary, Stiff Arm, enemy hit, enemy defeat, halftime Elite defeat, XP pickup, level-up, wave phase change banner, halftime warning, player damage, touchdown victory, turnover game-over, and menu navigate/confirm. Gameplay cues are skipped while the game is paused; menu navigation/confirmation and the victory/game-over stingers still play so pause and end-of-run screens remain responsive.
 
@@ -197,29 +201,56 @@ Drop PNG sprite sheets into the designated subfolders under `assets/sprites/`:
 - `assets/sprites/enemies/thrower/`: Thrower enemy sprite sheets
 - `assets/sprites/enemies/blocker/`: Blocker enemy sprite sheets
 - `assets/sprites/enemies/coach/`: Coach support enemy sprite sheets
+- `assets/sprites/enemies/referee/`: Referee enemy sprite sheets
 - `assets/sprites/boss/elite/`: Halftime Elite boss sprite sheets
 - `assets/sprites/maps/classic_field/`: Classic field decor/goalpost sprites
 - `assets/sprites/maps/bluegrass_field/`: Bluegrass field decor/goalpost sprites
 
 To assign frames in Godot: open the target scene (`Player.tscn`, `Enemy.tscn`, `Boss.tscn`, etc.), click the `AnimatedSprite2D` node, select the `SpriteFrames` resource in the Inspector, and use the SpriteFrames panel to slice your sheet into frames for the corresponding animation slot (`idle`, `run`, `hit`, `death`).
 
-Defenders appear around the arena perimeter and damage the player on contact. Fast runners begin joining the waves as survival pressure rises; they move faster but have lower health and contact damage. Player health is displayed in the top-left HUD; the game-over panel appears when health reaches zero.
+## Enemy roster & mechanics
 
-Throwers maintain a preferred distance and periodically launch enemy footballs; Blockers are larger and push the player away on contact; Coaches periodically refresh bounded speed/contact-damage buffs on nearby enemies and remove their buffs when defeated. Enemy projectiles only damage the player, never enemies or player-owned weapons. Referee roles are not implemented yet.
+- **Defender**: fundamental pursuing defensive back that damages on contact.
+- **Runner**: fast, evasive rusher with lower health that tests perimeter positioning.
+- **Thrower**: maintains range and launches enemy-only footballs at the player.
+- **Blocker**: durable enforcer that knocks the player backward on contact.
+- **Coach**: roaming coordinator that projects a support aura buffing nearby enemies' speed and damage.
+- **Referee**: field official roaming the gridiron emitting a visible **Penalty Zone**. If the player attacks (fires any weapon) while standing inside an active Penalty Zone, they receive a 2-second **Flagged** debuff (45% speed penalty, auto/active weapons disabled, HUD warning banner, whistle cue), requiring tactical repositioning. Referees are damageable and drop XP like other roles.
+- **Halftime Elite**: boss that takes the field at 2:30 with high durability, rewarding 25 XP and 50 permanent coins on defeat.
 
-The player automatically throws footballs at nearby enemies. Level-ups can unlock three additional weapons: **Tackle Burst** damages all nearby enemies with a close-range radius flash, **Hail Mary** launches a slow high-impact long-range shot, and **Stiff Arm** sweeps a short melee arc. Each weapon has its own cooldown and damage upgrades, and each unlock can only be selected once. No additional input is required; projectiles disappear after hitting an enemy or reaching their lifetime.
+## Character Audible abilities
 
-During a run, the compact loadout HUD lists Football, Tackle Burst, Hail Mary, and Stiff Arm with locked/ready state plus live damage and cooldown values. Level-up cards identify **WEAPON UNLOCK**, **WEAPON UPGRADE**, or **PLAYER STAT** choices and show current and resulting values where applicable. Already-owned unlocks are removed from the choice pool, and the loadout resets with each new run.
+Each character possesses a signature active **Audible** ability on a 30-second cooldown, activated with **Space** or **Controller RB**:
 
-Enemies drop green experience pickups. Collect enough to level up, then call one of three football-themed upgrades while gameplay is paused: Power Run, Quick Snap, Long Bomb, Goal Line Stand, Open Field Sprint, or weapon-specific drills.
+- **Quarterback (Pocket Protection)**: 2.0s invincibility shield plus an explosive shockwave that knocks back and damages all nearby enemies within 220px.
+- **Running Back (Juke Move)**: a high-speed forward dash (0.35s at 3.2x speed) that evades incoming contact damage and deals 35 damage to enemies passed through.
+- **Linebacker (Bull Rush)**: a devastating forward charge (0.5s at 2.5x speed with 80% damage reduction) dealing 50 damage and heavy knockback along its path.
 
-Each run displays elapsed survival time and escalates enemy pressure after the opening period. Victory and game over both offer a restart button.
+The HUD provides a live cooldown counter and "READY" indicator for the active Audible.
 
-The five-minute drive is paced by named wave phases: Kickoff (0:00-0:45), First Quarter (0:45-1:45), Second Quarter (1:45-2:30), Halftime Drive (2:30-3:30), Final Drive (3:30-4:30), and Red Zone (4:30-5:00). Each phase has its own role mix, spawn interval, and enemy cap; a banner announces phase changes. The one-time Elite still arrives at 2:30, and the director pauses safely with gameplay.
+## Turf hazards & wave pacing
 
-Player damage briefly flashes the QB, nearby enemy attacks show short warning rings, and weapon hits create floating impact numbers. End-of-run panels include drive time, enemies defeated, XP collected, and total impact events in addition to the existing profile reward; these stats reset every kickoff and do not change currency rewards.
+The five-minute drive is paced across structured wave phases with dynamic **Turf Hazards**:
 
-At 2:30, a one-time halftime event announces and spawns an Elite outside the field boundary while normal spawns continue under their cap. The Elite is larger, slower, much tougher, deals bounded contact damage, and drops 25 XP. Defeating it grants the selected profile a one-time 50-coin bonus and updates the scoreboard-style HUD; the bonus cannot repeat from duplicate damage or terminal transitions. The run uses football terminology throughout: kickoff, drive clock, downs, halftime huddle, turnover, touchdown, and front-office upgrades.
+1. **Kickoff (0:00 - 0:45)**: Defenders establish the line.
+2. **First Quarter (0:45 - 1:45)**: Runners and Referees enter the fray.
+3. **Second Quarter (1:45 - 2:30)**: **Muddy Turf Hazard** active — soggy turf darkens the field and slows player movement speed by 28%.
+4. **Halftime Drive (2:30 - 3:30)**: Halftime Elite takes the field; standard field conditions return.
+5. **Final Drive (3:30 - 4:30)**: **Sideline Chains Hazard** active — physical sideline chain barriers contract playable horizontal width from ±560 to ±385.
+6. **Red Zone (4:30 - 5:00)**: All roles join the final stand across full turf.
+
+Clear HUD banners and audio alerts announce all phase changes and hazard starts/ends.
+
+## Playbook & weapons
+
+- **Automatic Football**: primary projectile targeting the nearest enemy.
+- **Tackle Burst**: close-range area-of-effect blast.
+- **Hail Mary**: long-range high-impact bomb.
+- **Stiff Arm**: melee arc sweep.
+
+Collecting XP triggers the **Playbook** ("Call a Play") screen, pausing gameplay to offer choices categorized as **WEAPON UNLOCK**, **WEAPON UPGRADE**, or **PLAYER STAT** with current and upgraded stat comparisons. The live loadout HUD tracks unlocked state, damage, and cooldowns for all four weapons throughout the drive.
+
+Player damage briefly flashes the player, nearby enemy attacks show short warning rings, weapon hits create floating impact numbers, and end-of-run summaries track survival time, enemies defeated, XP earned, and weapon hit statistics.
 
 Starting or restarting a run creates a fresh player progression state and clears all active gameplay nodes before the timer begins.
 
